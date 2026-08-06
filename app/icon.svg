@@ -1,0 +1,47 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#5FA8FF"/>
+      <stop offset="1" stop-color="#2D6FE0"/>
+    </linearGradient>
+  </defs>
+
+  <rect width="512" height="512" rx="120" fill="url(#bg)"/>
+
+  <!-- sparkles -->
+  <g fill="#FFFFFF" opacity="0.9">
+    <path d="M108 118 l9 22 22 9 -22 9 -9 22 -9 -22 -22 -9 22 -9 z"/>
+    <path d="M406 96 l6 15 15 6 -15 6 -6 15 -6 -15 -15 -6 15 -6 z"/>
+    <path d="M420 300 l7 17 17 7 -17 7 -7 17 -7 -17 -17 -7 17 -7 z"/>
+  </g>
+
+  <!-- little clouds trailing behind -->
+  <g fill="#FFFFFF" opacity="0.55">
+    <circle cx="96" cy="320" r="16"/>
+    <circle cx="122" cy="334" r="22"/>
+    <circle cx="154" cy="326" r="14"/>
+  </g>
+
+  <!-- cute paper airplane, tilted like it's zooming up -->
+  <g transform="translate(276,272) rotate(-16)">
+    <!-- soft drop shadow body -->
+    <path d="M182 6 L -150 -62 L -34 -4 Z" fill="#FFFFFF"/>
+    <path d="M182 6 L -34 -4 L -150 62 Z" fill="#D6E8FF"/>
+
+    <!-- tail flap -->
+    <path d="M-150 -62 L-182 -50 L-150 -14 Z" fill="#EAF3FF"/>
+
+    <!-- face -->
+    <circle cx="76" cy="-10" r="9" fill="#26364A"/>
+    <circle cx="108" cy="-2" r="9" fill="#26364A"/>
+    <ellipse cx="62" cy="10" rx="11" ry="7" fill="#FF9EB5" opacity="0.85"/>
+    <ellipse cx="122" cy="18" rx="11" ry="7" fill="#FF9EB5" opacity="0.85"/>
+    <path d="M84 18 Q96 30 116 20" stroke="#26364A" stroke-width="5" fill="none" stroke-linecap="round"/>
+  </g>
+
+  <!-- motion lines -->
+  <g stroke="#FFFFFF" stroke-width="8" stroke-linecap="round" opacity="0.6">
+    <path d="M118 236 q40 -6 70 -18" fill="none"/>
+    <path d="M108 274 q46 -4 82 -14" fill="none"/>
+  </g>
+</svg>
