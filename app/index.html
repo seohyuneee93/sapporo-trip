@@ -433,10 +433,22 @@
 /* shared with 남편 — expenses/day items/budget live in Supabase (not
    localStorage) so both phones read and write the same data, with
    Realtime pushing any change to whichever device didn't make it. */
-const supabase = window.supabase.createClient(
+/* named `sb`, not `supabase` — the CDN bundle already put a `supabase`
+   global on window, and `const supabase = ...` at top level collides
+   with it ("Identifier 'supabase' has already been declared"). */
+const sb = window.supabase.createClient(
   'https://qenlhatnqnpgpssknzxw.supabase.co',
   'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFlbmxoYXRucW5wZ3Bzc2tuenh3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODYwMDUyNjAsImV4cCI6MjEwMTU4MTI2MH0.QqGY7F_wl6cLgYmuIO53QtoXtt0MADIfQGzDyvJ2x8I'
 );
+/* supabase-js query builders are lazily "thenable" — the fetch is only
+   actually sent once something calls .then()/awaits it. A bare
+   `sb.from(...).insert(...)` statement with no .then()/await is a silent
+   no-op: nothing ever reaches the network. Every fire-and-forget write in
+   this file goes through here so it actually fires, and so a failure at
+   least lands in the console instead of vanishing. */
+function sbWrite(builder){
+  builder.then(null, err => console.error('supabase write failed', err));
+}
 
 const ICON_VIEWBOX = { flight: '0 0 24 24', hotel: '0 0 24 24', food: '0 0 24 24', coffee: '0 0 24 24', ticket: '0 0 24 24', plus: '0 0 24 24', bus: '0 0 24 24', exchange: '0 0 24 24', 'chevron-left': '0 0 24 24', 'chevron-right': '0 0 24 24' };
 
@@ -605,7 +617,7 @@ const DEFAULT_DAY_TIMELINES = [
 let DAY_TIMELINES = [null, [], [], [], [], []];
 
 async function loadDayTimelines(){
-  const { data, error } = await supabase.from('day_items').select('*').order('day').order('position');
+  const { data, error } = await sb.from('day_items').select('*').order('day').order('position');
   if (error){ console.error(error); return; }
   let rows = data;
   if (rows.length === 0){
@@ -614,7 +626,7 @@ async function loadDayTimelines(){
       if (day === null) return;
       day.forEach((it, ii) => rows.push({ id:'d'+di+'-'+ii, day:di, cat:it.cat, time:it.time, title:it.title, place:it.place, position:ii }));
     });
-    supabase.from('day_items').insert(rows);
+    await sb.from('day_items').insert(rows); // awaited: if the page unloads before a fire-and-forget seed insert lands, the table stays empty and every load reseeds forever
   }
   const grouped = [null, [], [], [], [], []];
   rows.forEach(r => grouped[r.day].push(r));
@@ -632,7 +644,7 @@ function renderDay(index){
 
 let BUDGET = 2500000;
 async function loadBudget(){
-  const { data, error } = await supabase.from('app_settings').select('value').eq('key','budget').maybeSingle();
+  const { data, error } = await sb.from('app_settings').select('value').eq('key','budget').maybeSingle();
   if (error){ console.error(error); return; }
   if (data) BUDGET = Number(data.value);
 }
@@ -646,12 +658,12 @@ const DEFAULT_EXPENSES = [
 let EXPENSES = [];
 
 async function loadExpenses(){
-  const { data, error } = await supabase.from('expenses').select('*').order('position');
+  const { data, error } = await sb.from('expenses').select('*').order('position');
   if (error){ console.error(error); return; }
   if (data.length === 0){
     const seeded = DEFAULT_EXPENSES.map((e,i) => Object.assign({ id:'e'+i, position:i }, e));
     EXPENSES = seeded;
-    supabase.from('expenses').insert(seeded);
+    await sb.from('expenses').insert(seeded); // awaited, same reason as the day_items seed above
   } else {
     EXPENSES = data;
   }
@@ -659,7 +671,7 @@ async function loadExpenses(){
 function deleteExpense(id){
   EXPENSES = EXPENSES.filter(e => e.id !== id);
   renderContent();
-  supabase.from('expenses').delete().eq('id', id);
+  sbWrite(sb.from('expenses').delete().eq('id', id));
 }
 
 function formatWon(n){ return n.toLocaleString('ko-KR')+'원'; }
@@ -769,12 +781,12 @@ function submitExpense(){
     const item = EXPENSES.find(e => e.id === editingId);
     if (item){
       item.cat = selectedAddCat; item.title = title; item.memo = memo; item.amount = amount;
-      supabase.from('expenses').update({ cat:item.cat, title:item.title, memo:item.memo, amount:item.amount }).eq('id', item.id);
+      sbWrite(sb.from('expenses').update({ cat:item.cat, title:item.title, memo:item.memo, amount:item.amount }).eq('id', item.id));
     }
   } else {
     const newItem = { id:'e'+Date.now(), cat: selectedAddCat, title: title, memo: memo, amount: amount, position: EXPENSES.length };
     EXPENSES.push(newItem);
-    supabase.from('expenses').insert(newItem);
+    sbWrite(sb.from('expenses').insert(newItem));
   }
   closeExpenseModal();
   renderContent();
@@ -831,12 +843,12 @@ function submitItem(){
     const item = arr.find(it => it.id === editingItemId);
     if (item){
       item.cat = selectedItemCat; item.title = title; item.time = time; item.place = place;
-      supabase.from('day_items').update({ cat:item.cat, title:item.title, time:item.time, place:item.place }).eq('id', item.id);
+      sbWrite(sb.from('day_items').update({ cat:item.cat, title:item.title, time:item.time, place:item.place }).eq('id', item.id));
     }
   } else {
     const newItem = { id:'d'+editingDay+'-'+Date.now(), day: editingDay, cat: selectedItemCat, title: title, time: time, place: place, position: arr.length };
     arr.push(newItem);
-    supabase.from('day_items').insert(newItem);
+    sbWrite(sb.from('day_items').insert(newItem));
   }
   closeItemModal();
   renderContent();
@@ -848,7 +860,7 @@ function deleteItem(){
   const [removed] = arr.splice(idx, 1);
   closeItemModal();
   renderContent();
-  supabase.from('day_items').delete().eq('id', removed.id);
+  sbWrite(sb.from('day_items').delete().eq('id', removed.id));
 }
 
 document.getElementById('itemCancelBtn').addEventListener('click', closeItemModal);
@@ -935,7 +947,7 @@ function onDragEnd(){
     EXPENSES = ids.map(id => EXPENSES.find(exp => exp.id === id));
     EXPENSES.forEach((e,i) => { e.position = i; });
     dragRow = null;
-    EXPENSES.forEach(e => { supabase.from('expenses').update({ position:e.position }).eq('id', e.id); });
+    EXPENSES.forEach(e => { sbWrite(sb.from('expenses').update({ position:e.position }).eq('id', e.id)); });
   } else {
     const day = Number(dragRow.dataset.day);
     const arr = DAY_TIMELINES[day];
@@ -944,7 +956,7 @@ function onDragEnd(){
     DAY_TIMELINES[day] = reordered;
     dragRow = null;
     renderContent(); // connector line placement (last item) is derived from array order at render time, so re-draw once the new order has settled
-    reordered.forEach(it => { supabase.from('day_items').update({ position:it.position }).eq('id', it.id); });
+    reordered.forEach(it => { sbWrite(sb.from('day_items').update({ position:it.position }).eq('id', it.id)); });
   }
 }
 
@@ -970,7 +982,7 @@ function submitBudget(){
   BUDGET = val;
   closeBudgetModal();
   renderContent();
-  supabase.from('app_settings').upsert({ key:'budget', value: BUDGET });
+  sbWrite(sb.from('app_settings').upsert({ key:'budget', value: BUDGET }));
 }
 document.getElementById('budgetInput').addEventListener('input', liveFormatAmount);
 document.getElementById('budgetCancelBtn').addEventListener('click', closeBudgetModal);
@@ -1055,7 +1067,7 @@ function renderDday(){
    The tables are tiny, so refetching the whole thing is simpler and safer
    than merging individual change events. */
 function setupRealtime(){
-  supabase.channel('sapporo-sync')
+  sb.channel('sapporo-sync')
     .on('postgres_changes', { event:'*', schema:'public', table:'expenses' }, async () => { await loadExpenses(); renderContent(); })
     .on('postgres_changes', { event:'*', schema:'public', table:'day_items' }, async () => { await loadDayTimelines(); renderContent(); })
     .on('postgres_changes', { event:'*', schema:'public', table:'app_settings' }, async () => { await loadBudget(); renderContent(); })
