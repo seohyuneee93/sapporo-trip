@@ -1,0 +1,1051 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<title>삿포로 여행 일정표</title>
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="description" content="8월 24일-28일 삿포로 여행 일정표">
+<style>
+  /* ==========================================================
+     Structure/tokens carried over from the 경주 여행 일정표 앱
+     (same layout, same Teams UI Kit-derived scale for spacing/
+     radius/elevation/typography). Brand hue swapped from Teams
+     purple to Toss Blue (#3182F6) per request; category accents
+     re-picked from Toss's palette (orange/mint/red/purple) so
+     they stay distinct from the new brand blue.
+     ========================================================== */
+  :root{
+    --brand-primary-rgb: 49 130 246;     /* #3182F6 Toss Blue */
+    --brand-primary-pressed: rgb(21,79,173);  /* #154FAD */
+    --brand-tint: rgb(235,242,254);
+
+    --fg-default: rgb(36,36,36);
+    --fg-secondary: rgb(51,51,51);
+    --fg-tertiary: rgb(51,51,51);
+    --fg-on-brand: rgb(255,255,255);
+
+    --surface-canvas: rgb(255,255,255);
+    --surface-card: rgb(245,245,245);
+    --surface-sunken: rgb(250,250,250);
+
+    --border-default: rgb(225,223,221);
+    --border-subtle: rgb(237,235,233);
+    --border-strong: rgb(205,205,205);
+
+    --status-info-rgb: 2 132 199;       /* flight — sky blue, distinct from the Toss-blue brand hue */
+    --status-warning-rgb: 255 139 36;   /* food — Toss orange */
+    --status-urgent-rgb: 233 89 217;    /* ticket */
+    --status-danger-rgb: 240 68 82;     /* pending/undecided — Toss red */
+    --leisure-rgb: 0 173 145;           /* free time — Toss mint */
+    --transport-rgb: 124 92 239;        /* transport — indigo, distinct from sky-blue flight & magenta ticket */
+    --exchange-rgb: 22 163 74;          /* exchange — green, cash-like, distinct from mint leisure */
+    --tint-alpha: 0.1;
+
+    --radius-small: 2px;
+    --radius-medium: 4px;
+    --radius-large: 8px;
+    --radius-pill: 9999px;
+
+    --shadow-4: 0px 0px 2px rgba(0,0,0,0.12), 0px 2px 4px rgba(0,0,0,0.14);
+
+    --space-1: 4px;  --space-2: 8px;  --space-3: 12px; --space-4: 16px;
+    --space-5: 20px; --space-6: 24px; --space-8: 32px;
+
+    --font-family-base: "Segoe UI", -apple-system, BlinkMacSystemFont, Roboto, "Helvetica Neue", Arial, sans-serif;
+    /* type scale: --fs-1 footnote < --fs-2 badge < --fs-3 body (most-used) < --fs-4 emphasis < --fs-5 hero-number */
+    --fs-1: 12px; --fs-2: 13px; --fs-3: 14px; --fs-4: 16px; --fs-5: 22px;
+    --fw-medium: 600; --fw-bold: 700;
+
+    color-scheme: light;
+  }
+
+  @media (prefers-color-scheme: dark){
+    :root:not([data-theme="light"]){
+      --surface-canvas: rgb(31,31,31);
+      --surface-card: rgb(37,36,36);
+      --surface-sunken: rgb(24,24,24);
+      --fg-default: rgb(245,245,245);
+      --fg-secondary: rgb(214,214,214);
+      --fg-tertiary: rgb(166,166,166);
+      --border-default: rgb(61,59,57);
+      --border-subtle: rgb(47,45,43);
+      --border-strong: rgb(96,94,92);
+      --brand-tint: rgba(49,130,246,0.28);
+      --tint-alpha: 0.18;
+      color-scheme: dark;
+    }
+  }
+  :root[data-theme="dark"]{
+    --surface-canvas: rgb(31,31,31);
+    --surface-card: rgb(37,36,36);
+    --surface-sunken: rgb(24,24,24);
+    --fg-default: rgb(245,245,245);
+    --fg-secondary: rgb(214,214,214);
+    --fg-tertiary: rgb(166,166,166);
+    --border-default: rgb(61,59,57);
+    --border-subtle: rgb(47,45,43);
+    --border-strong: rgb(96,94,92);
+    --brand-tint: rgba(49,130,246,0.28);
+    --tint-alpha: 0.18;
+    color-scheme: dark;
+  }
+
+  *{ box-sizing: border-box; }
+  html,body{
+    margin:0; height:100%; overflow-x:hidden;
+    background: var(--surface-sunken);
+  }
+  body{
+    font-family: var(--font-family-base);
+    color: var(--fg-default);
+    -webkit-font-smoothing: antialiased;
+    -webkit-tap-highlight-color: transparent;
+  }
+  button{ font-family: inherit; }
+
+  .shell{
+    display:flex; flex-direction:column;
+    height: 100vh; height: 100dvh;
+    max-width: 520px; margin: 0 auto;
+    background: var(--surface-sunken);
+    overflow: hidden;
+  }
+
+  /* ---- header ---- */
+  .header{
+    flex: 0 0 auto;
+    background: linear-gradient(135deg, rgb(var(--brand-primary-rgb)), var(--brand-primary-pressed));
+    color: var(--fg-on-brand);
+    padding: calc(env(safe-area-inset-top, 0px) + var(--space-5)) var(--space-5) var(--space-4);
+  }
+  .header-row{ display:flex; align-items:center; justify-content:space-between; gap: var(--space-3); }
+  .header .title{ font-size: var(--fs-5); font-weight: var(--fw-bold); letter-spacing: -0.01em; text-wrap: balance; }
+  .header .sub{ font-size: var(--fs-3); opacity: 0.9; margin-top: var(--space-1); }
+  .dday-badge{
+    flex-shrink:0; background: rgba(255,255,255,0.18); border:1px solid rgba(255,255,255,0.32);
+    border-radius: var(--radius-pill); padding: 6px 14px; font-size:var(--fs-2); font-weight:var(--fw-bold);
+    letter-spacing:0.01em; white-space:nowrap;
+  }
+
+  /* ---- tab bar ---- */
+  .tabbar{
+    flex: 0 0 auto;
+    display: flex;
+    background: var(--surface-canvas);
+    border-bottom: 1px solid var(--border-default);
+    overflow-x: hidden;
+  }
+  .tab{
+    flex: 1 1 0; min-width: 0; min-height: 44px;
+    background: none; border: none; cursor: pointer;
+    padding: var(--space-3) var(--space-1);
+    border-bottom: 2px solid transparent;
+    font-size: var(--fs-3); font-weight: var(--fw-bold); color: var(--fg-tertiary);
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+  }
+  .tab[aria-selected="true"]{
+    color: rgb(var(--brand-primary-rgb));
+    border-bottom-color: rgb(var(--brand-primary-rgb));
+  }
+  .tab:focus-visible{ outline: 2px solid rgb(var(--brand-primary-rgb)); outline-offset: -2px; }
+  .tab:active{ opacity:0.6; }
+
+  /* ---- day picker (inside the 일정 tab) ----
+     plain prev/next paging — no dropdown, no per-day tap targets. */
+  /* between two timeline icons the gap is has-connector's 24px PLUS a full
+     place-text line (~24px) above the next icon; the day-picker has no
+     place-text line under it, so its own margin needs to be doubled to
+     land the first icon at the same visual distance. */
+  .day-picker{ position:relative; margin-bottom: calc(var(--space-6) * 2); }
+  .day-step-btn{
+    width:28px; height:28px; flex-shrink:0; border-radius:50%; border:none;
+    background:none; color: rgb(var(--brand-primary-rgb)); cursor:pointer;
+    display:flex; align-items:center; justify-content:center;
+  }
+  .day-step-btn:disabled{ cursor:default; }
+  .day-step-btn:active:not(:disabled){ opacity:0.6; }
+  .day-step-btn:focus-visible{ outline: 2px solid rgb(var(--brand-primary-rgb)); outline-offset: 2px; }
+
+  /* ---- content ---- */
+  .content{
+    flex: 1 1 auto;
+    min-height: 0;
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+    padding-top: var(--space-5);
+    padding-left: var(--space-5);
+    padding-right: var(--space-5);
+    padding-bottom: calc(env(safe-area-inset-bottom, 0px) + var(--space-8));
+    scrollbar-width: thin;
+    scrollbar-color: var(--border-default) transparent;
+  }
+  .content::-webkit-scrollbar{ width: 6px; }
+  .content::-webkit-scrollbar-track{ background: transparent; }
+  .content::-webkit-scrollbar-thumb{ background: var(--border-default); border-radius: 3px; }
+  .content::-webkit-scrollbar-thumb:hover{ background: var(--border-strong); }
+  .footer{
+    flex: 0 0 auto; text-align:center; font-size:var(--fs-1); color: var(--fg-tertiary);
+    border-top: 1px solid var(--border-subtle); background: var(--surface-canvas);
+    padding: var(--space-2) var(--space-4) calc(env(safe-area-inset-bottom, 0px) + var(--space-2));
+  }
+  .screen{ animation: enter .22s ease; }
+  @keyframes enter{ from{ opacity:0; transform: translateY(4px); } to{ opacity:1; transform:none; } }
+  @media (prefers-reduced-motion: reduce){ .screen{ animation:none; } }
+
+  /* ---- home screen ---- */
+  .section + .section{ margin-top: var(--space-6); }
+  .section-label{
+    display:flex; align-items:center; gap: 10px; min-height:28px;
+    margin-bottom: var(--space-6);
+  }
+  .section-label .text{
+    font-size: var(--fs-4); font-weight:var(--fw-bold); color: var(--fg-default);
+    letter-spacing: -0.01em;
+  }
+  .card{
+    background: var(--surface-canvas); border:1px solid var(--border-default);
+    border-radius: var(--radius-large); padding: var(--space-4);
+    box-shadow: var(--shadow-4);
+  }
+  .divider{ height:1px; background: var(--border-subtle); }
+  .item-head{ display:flex; align-items:baseline; gap: var(--space-2); margin-bottom: 10px; }
+  .item-direction{ font-size:var(--fs-3); font-weight:var(--fw-bold); }
+  .item-date{ font-size: var(--fs-3); color: var(--fg-default); }
+
+  .leg{ display:flex; flex-direction:column; }
+  .leg .row{ display:flex; align-items:center; gap: var(--space-3); }
+  .leg .stop{ text-align:center; flex:0 0 72px; }
+  .leg .time{ font-size:var(--fs-4); font-weight:var(--fw-bold); color: var(--fg-default); font-variant-numeric: tabular-nums; }
+  .city{ font-size:var(--fs-4); font-weight:var(--fw-bold); color: var(--fg-default); margin-top: var(--space-1); }
+  .pending{ color: rgb(var(--status-danger-rgb)); }
+  .leg .path{ flex:1; display:flex; flex-direction:column; align-items:center; gap: var(--space-1); min-width:0; }
+  .leg .line-row{ width:100%; display:flex; align-items:center; gap: var(--space-2); }
+  .leg .line{ flex:1; height:1px; background: var(--border-default); }
+  .leg .flightno{ font-size: var(--fs-3); color: var(--fg-default); white-space:nowrap; }
+
+  .stack{ display:flex; flex-direction:column; gap: var(--space-3); }
+
+  /* ---- day timeline ---- */
+  .timeline-item{ position:relative; }
+  .timeline-item.has-connector{ padding-bottom: var(--space-6); }
+  .ti-top{ display:flex; align-items:center; gap: 10px; }
+  .rail{ width:28px; flex-shrink:0; display:flex; align-items:center; justify-content:center; position:relative; z-index:1; }
+  .icon-dot{
+    width:28px; height:28px; border-radius:50%; flex-shrink:0;
+    display:flex; align-items:center; justify-content:center;
+    box-shadow: 0 0 0 3px var(--surface-canvas);
+  }
+  .rail-line{ position:absolute; left:13px; width:2px; background: var(--border-default); top:28px; bottom:0; }
+  .ti-rest{ padding-left: calc(28px + var(--space-2)); }
+  .t-row{ display:flex; align-items:baseline; justify-content:space-between; gap: var(--space-2); flex:1; min-width:0; }
+  .t-time{ font-size:var(--fs-4); font-weight:var(--fw-bold); font-variant-numeric: tabular-nums; flex-shrink:0; color: var(--fg-default); }
+  .t-time.pending{ color: rgb(var(--status-danger-rgb)); }
+  .t-title{ font-size:var(--fs-4); font-weight:var(--fw-medium); color:var(--fg-default); min-width:0; }
+  .t-place{ font-size:var(--fs-3); color: var(--fg-tertiary); margin-top: var(--space-1); }
+
+  /* ---- expense tab (styled like the day timeline for visual consistency) ---- */
+  /* right inset matches .card's own padding, so amounts here land under 잔액 above,
+     which sits inside a card (no card wrapper on this list anymore). */
+  #expenseList{ padding-right: var(--space-4); }
+  .exp-item{ cursor:pointer; }
+  .exp-item:active{ opacity:0.6; }
+  .exp-item.dragging{ opacity:0.85; }
+  .exp-item:focus-visible, #balanceAmount:focus-visible{ outline: 2px solid rgb(var(--brand-primary-rgb)); outline-offset: 2px; border-radius: var(--radius-small); }
+
+  .day-item{ cursor:pointer; }
+  .day-item:active{ opacity:0.6; }
+  .day-item:focus-visible{ outline: 2px solid rgb(var(--brand-primary-rgb)); outline-offset: 2px; border-radius: var(--radius-small); }
+
+  .exp-day{ font-size:var(--fs-3); color: var(--fg-tertiary); margin-top: var(--space-1); }
+  .exp-amount-wrap{ position:relative; flex-shrink:0; }
+  .exp-drag{
+    position:absolute; inset:0;
+    display:flex; align-items:center; justify-content:center;
+    color: var(--fg-tertiary); cursor:grab; touch-action:none;
+  }
+  .exp-drag:active{ cursor:grabbing; }
+  .add-btn{
+    width:28px; height:28px; padding:0; border-radius:50%; flex-shrink:0; border:none; cursor:pointer;
+    background: var(--brand-tint); color: rgb(var(--brand-primary-rgb));
+    display:flex; align-items:center; justify-content:center; position:relative;
+  }
+  /* keeps the visible circle at 28px but expands the tappable area to the
+     44px accessibility minimum, invisibly, via ::before (hitSlop pattern) */
+  .add-btn::before{ content:''; position:absolute; inset:-8px; }
+  .add-btn:active{ opacity:0.7; }
+  .budget-meter{
+    margin-top: var(--space-3); height:8px; border-radius: var(--radius-pill);
+    background: var(--surface-card); overflow:hidden;
+  }
+  .budget-meter-fill{ height:100%; border-radius: var(--radius-pill); transition: width .3s ease; }
+  @media (prefers-reduced-motion: reduce){ .budget-meter-fill{ transition:none; } }
+  .budget-stat-label{ font-size:var(--fs-3); color: var(--fg-tertiary); text-align:left; }
+  .budget-stat-value{ font-size:var(--fs-4); font-weight:var(--fw-bold); color: var(--fg-default); font-variant-numeric: tabular-nums; text-align:right; }
+  .budget-stat-value.danger{ color: rgb(var(--status-danger-rgb)); }
+  /* 사용/잔액 share one grid so column 1 (label) always starts at the same
+     x on both rows, regardless of how many digits each row's amount has;
+     justify-content:end pushes the whole 2-column block to the card's
+     right edge like the rest of the budget card. */
+  .budget-rows{
+    display:grid; grid-template-columns:auto auto; justify-content:end;
+    align-items:baseline; gap: var(--space-1) var(--space-2);
+  }
+  .budget-balance{ display:contents; cursor:pointer; }
+
+  /* ---- add-expense modal ---- */
+  .modal-backdrop{
+    position:fixed; inset:0; background:rgba(0,0,0,0.4);
+    display:none; align-items:center; justify-content:center; z-index:100; padding: var(--space-5);
+  }
+  .modal-backdrop.open{ display:flex; }
+  .modal-panel{
+    background: var(--surface-canvas); border-radius: var(--radius-large);
+    padding: var(--space-5); width:100%; max-width:340px; box-shadow: var(--shadow-4);
+  }
+  .modal-title{ font-size:var(--fs-4); font-weight:var(--fw-bold); color: var(--fg-default); margin-bottom: var(--space-4); }
+  .cat-picker{ display:flex; gap: var(--space-2); margin-bottom: var(--space-4); flex-wrap:wrap; }
+  .cat-btn{
+    width:40px; height:40px; border-radius:50%; border:2px solid transparent; position:relative;
+    display:flex; align-items:center; justify-content:center; cursor:pointer;
+  }
+  .cat-btn::before{ content:''; position:absolute; inset:-2px; }
+  .cat-btn.active{ border-color: currentColor; }
+  .cat-btn:active{ opacity:0.7; }
+  .field{ margin-bottom: var(--space-4); }
+  .field label{ display:block; font-size:var(--fs-3); color: var(--fg-tertiary); margin-bottom: var(--space-1); }
+  .field input{
+    width:100%; box-sizing:border-box; border:1px solid var(--border-default); border-radius: var(--radius-medium);
+    padding: var(--space-2) var(--space-3); font-size:var(--fs-3); color: var(--fg-default);
+    background: var(--surface-canvas); font-family: inherit;
+  }
+  .field input:focus{ outline:2px solid rgb(var(--brand-primary-rgb)); outline-offset:-1px; }
+  .modal-actions{ display:flex; justify-content:flex-end; gap: var(--space-2); }
+  .btn-primary, .btn-secondary, .btn-danger{
+    border:none; border-radius: var(--radius-medium); padding: var(--space-2) var(--space-4);
+    font-size:var(--fs-3); font-weight:var(--fw-bold); cursor:pointer; font-family:inherit;
+  }
+  .btn-primary{ background: rgb(var(--brand-primary-rgb)); color:#fff; }
+  .btn-secondary{ background: var(--surface-card); color: var(--fg-secondary); }
+  .btn-danger{ background: var(--surface-card); color: rgb(var(--status-danger-rgb)); }
+  .btn-primary:active, .btn-secondary:active, .btn-danger:active{ opacity:0.75; }
+
+  /* icon-svg intentionally has no width/height rule here — the inline
+     width/height attributes set per call in icon(name,size) control size;
+     a CSS rule would win over those attributes and silently override them. */
+</style>
+</head>
+<body>
+
+<div class="shell">
+  <div class="header">
+    <div class="header-row">
+      <div>
+        <div class="title">삿포로 여행</div>
+        <div class="sub">8월 24일(월) - 8월 28일(금)</div>
+      </div>
+      <div class="dday-badge" id="ddayBadge"></div>
+    </div>
+  </div>
+
+  <div class="tabbar" id="tabbar" role="tablist" aria-label="일정 탭"></div>
+
+  <div class="content" id="content"></div>
+
+  <div class="footer">made by Seohyun</div>
+</div>
+
+<div class="modal-backdrop" id="expenseModalBackdrop">
+  <div class="modal-panel">
+    <div class="modal-title" id="modalTitle">지출 추가</div>
+    <div class="cat-picker" id="catPicker"></div>
+    <div class="field">
+      <label for="expTitleInput">항목명</label>
+      <input type="text" id="expTitleInput" placeholder="예: 저녁 식사">
+    </div>
+    <div class="field">
+      <label for="expMemoInput">메모 (선택)</label>
+      <input type="text" id="expMemoInput" placeholder="예: 트래블버킷 하나카드">
+    </div>
+    <div class="field">
+      <label for="expAmountInput">금액</label>
+      <input type="text" id="expAmountInput" placeholder="0" inputmode="numeric" pattern="[0-9,]*">
+    </div>
+    <div class="modal-actions">
+      <button type="button" class="btn-danger" id="expDeleteBtn" style="display:none">삭제</button>
+      <div style="flex:1"></div>
+      <button type="button" class="btn-secondary" id="expCancelBtn">취소</button>
+      <button type="button" class="btn-primary" id="expAddBtn">추가</button>
+    </div>
+  </div>
+</div>
+
+<div class="modal-backdrop" id="itemModalBackdrop">
+  <div class="modal-panel">
+    <div class="modal-title" id="itemModalTitle">일정 수정</div>
+    <div class="cat-picker" id="itemCatPicker"></div>
+    <div class="field">
+      <label for="itemTitleInput">항목명</label>
+      <input type="text" id="itemTitleInput" placeholder="예: 오도리 공원 산책">
+    </div>
+    <div class="field">
+      <label for="itemTimeInput">시간</label>
+      <input type="text" id="itemTimeInput" placeholder="예: 16:30 또는 오후">
+    </div>
+    <div class="field">
+      <label for="itemPlaceInput">장소 (선택)</label>
+      <input type="text" id="itemPlaceInput" placeholder="예: 스스키노">
+    </div>
+    <div class="modal-actions">
+      <button type="button" class="btn-danger" id="itemDeleteBtn" style="display:none">삭제</button>
+      <div style="flex:1"></div>
+      <button type="button" class="btn-secondary" id="itemCancelBtn">취소</button>
+      <button type="button" class="btn-primary" id="itemSaveBtn">저장</button>
+    </div>
+  </div>
+</div>
+
+<div class="modal-backdrop" id="budgetModalBackdrop">
+  <div class="modal-panel">
+    <div class="modal-title">예산 변경</div>
+    <div class="exp-day" id="currentBudgetLabel" style="margin-bottom:var(--space-4)"></div>
+    <div class="field">
+      <label for="budgetInput">새 예산</label>
+      <input type="text" id="budgetInput" placeholder="0" inputmode="numeric" pattern="[0-9,]*">
+    </div>
+    <div class="modal-actions">
+      <div style="flex:1"></div>
+      <button type="button" class="btn-secondary" id="budgetCancelBtn">취소</button>
+      <button type="button" class="btn-primary" id="budgetSaveBtn">저장</button>
+    </div>
+  </div>
+</div>
+
+<script>
+const ICON_VIEWBOX = { flight: '0 0 24 24', hotel: '0 0 24 24', food: '0 0 24 24', coffee: '0 0 24 24', ticket: '0 0 24 24', plus: '0 0 24 24', bus: '0 0 24 24', exchange: '0 0 24 24', 'chevron-left': '0 0 24 24', 'chevron-right': '0 0 24 24' };
+
+const ICONS = {
+  flight: '<path d="M21,16v-2l-8,-5V3.5C13,2.67 12.33,2 11.5,2S10,2.67 10,3.5V9l-8,5v2l8,-2.5V19l-2,1.5V22l3.5,-1L15,22v-1.5L13,19v-5.5L21,16z" fill="currentColor"/>',
+  'chevron-left': '<path d="M15.41,16.59L10.83,12l4.58,-4.59L14,6l-6,6l6,6z" fill="currentColor"/>',
+  'chevron-right': '<path d="M10,6L8.59,7.41L13.17,12l-4.58,4.59L10,18l6,-6z" fill="currentColor"/>',
+  bus: '<path d="M4,16c0,0.88 0.39,1.67 1,2.22V20c0,0.55 0.45,1 1,1h1c0.55,0 1,-0.45 1,-1v-1h8v1c0,0.55 0.45,1 1,1h1c0.55,0 1,-0.45 1,-1v-1.78c0.61,-0.55 1,-1.34 1,-2.22V6c0,-3.5 -3.58,-4 -8,-4S4,2.5 4,6V16zM7.5,17c-0.83,0 -1.5,-0.67 -1.5,-1.5S6.67,14 7.5,14s1.5,0.67 1.5,1.5S8.33,17 7.5,17zM16.5,17c-0.83,0 -1.5,-0.67 -1.5,-1.5s0.67,-1.5 1.5,-1.5s1.5,0.67 1.5,1.5S17.33,17 16.5,17zM18,11H6V6h12V11z" fill="currentColor"/>',
+  exchange: '<path d="M11.8,10.9c-2.27,-0.59 -3,-1.2 -3,-2.15c0,-1.09 1.01,-1.85 2.7,-1.85c1.78,0 2.44,0.85 2.5,2.1h2.21c-0.07,-1.72 -1.12,-3.3 -3.21,-3.81V3h-3v2.16c-1.94,0.42 -3.5,1.68 -3.5,3.61c0,2.31 1.91,3.46 4.7,4.13c2.5,0.6 3,1.48 3,2.41c0,0.69 -0.49,1.79 -2.7,1.79c-2.06,0 -2.87,-0.92 -2.98,-2.1h-2.2c0.12,2.19 1.76,3.42 3.68,3.83V21h3v-2.15c1.95,-0.37 3.5,-1.5 3.5,-3.55C15.5,12.29 13.35,11.5 11.8,10.9z" fill="currentColor"/>',
+  hotel: '<path d="M7,13c1.66,0 3,-1.34 3,-3S8.66,7 7,7s-3,1.34 -3,3S5.34,13 7,13zM19,7h-8v7H3V5H1v15h2v-3h18v3h2v-9c0,-2.21 -1.79,-4 -4,-4z" fill="currentColor"/>',
+  food: '<path d="M11,9H9V2H7v7H5V2H3v7c0,2.12 1.66,3.84 3.75,3.97V22h2.5v-9.03C11.34,12.84 13,11.12 13,9V2h-2V9zM16,6v8h2.5v8H21V2C18.24,2 16,4.24 16,6z" fill="currentColor"/>',
+  coffee: '<path d="M2,21h18v-2H2V21zM20,8h-2V5h2V3H4v9c0,2.21 1.79,4 4,4h6c2.21,0 4,-1.79 4,-4v-1h2c1.11,0 2,-0.89 2,-2V10C22,8.89 21.11,8 20,8zM20,10h-2V9h2V10z" fill="currentColor"/>',
+  ticket: '<path d="M20,12V8c0,-1.1 -0.9,-2 -2,-2H6C4.9,6 4,6.9 4,8v4c1.1,0 2,0.9 2,2s-0.9,2 -2,2v4c0,1.1 0.9,2 2,2h12c1.1,0 2,-0.9 2,-2v-4c-1.1,0 -2,-0.9 -2,-2S18.9,12 20,12zM13,17.5h-2v-1.5h2V17.5zM13,14.5h-2v-1.5h2V14.5zM13,11.5h-2v-1.5h2V11.5z" fill="currentColor"/>',
+  plus: '<path d="M19,13H13v6h-2v-6H5v-2h6V5h2v6h6V13z" fill="currentColor"/>',
+};
+
+function icon(name, size){
+  const vb = ICON_VIEWBOX[name] || '0 0 20 20';
+  return '<svg class="icon-svg" width="'+size+'" height="'+size+'" viewBox="'+vb+'" fill="none">'+ICONS[name]+'</svg>';
+}
+
+/* Category → accent color mapping (see :root token comment for the
+   Toss-palette rationale). "flight" uses a sky-blue slot, kept a shade
+   apart from the brand-blue "hotel" category so the two stay distinguishable. */
+const CAT = {
+  flight: { rgbVar: '--status-info-rgb',    icon: 'flight', isBrand: false },
+  hotel:  { rgbVar: '--brand-primary-rgb',  icon: 'hotel', isBrand: true },
+  transport: { rgbVar: '--transport-rgb',   icon: 'bus',   isBrand: false },
+  exchange:  { rgbVar: '--exchange-rgb',    icon: 'exchange', isBrand: false },
+  food:   { rgbVar: '--status-warning-rgb', icon: 'food',  isBrand: false },
+  leisure:{ rgbVar: '--leisure-rgb',        icon: 'coffee', isBrand: false },
+  ticket: { rgbVar: '--status-urgent-rgb',  icon: 'ticket', isBrand: false },
+};
+function catColor(cat){ return 'rgb(var(' + CAT[cat].rgbVar + ') / 1)'; }
+function catTint(cat){
+  return CAT[cat].isBrand
+    ? 'var(--brand-tint)'
+    : 'rgb(var(' + CAT[cat].rgbVar + ') / var(--tint-alpha))';
+}
+/* the "tinted background + solid-color icon" pairing shows up on every
+   icon-dot/cat-btn in the app — one helper instead of re-typing the
+   two-property style string at each call site. */
+function catStyle(cat){ return 'background:'+catTint(cat)+';color:'+catColor(cat); }
+/* '미정'/unset values (a day item's time, an expense's amount, ...) all
+   render in the same danger-red "pending" class — one place to add the
+   class instead of a ternary at every call site. */
+function pendingClass(isPending){ return isPending ? ' pending' : ''; }
+
+/* the 6 categories offered when adding/editing an expense or a day-timeline
+   item — same set everywhere so an icon always means the same thing across
+   tabs. */
+const CAT_PICKER_CATS = [
+  { key:'flight',    label:'항공' },
+  { key:'hotel',     label:'숙소' },
+  { key:'transport', label:'교통' },
+  { key:'exchange',  label:'환전' },
+  { key:'food',      label:'음식' },
+  { key:'ticket',    label:'티켓' },
+];
+
+function timelineItem({ id, cat, time, title, place, last }, day){
+  const c = CAT[cat];
+  const placeHtml = place
+    ? '<div class="t-place">- '+(place === '미정' ? '<span class="pending">미정</span>' : place)+'</div>'
+    : '<div class="t-place" style="visibility:hidden">-</div>';
+  const clickable = day != null;
+  const timeHtml = '<div class="t-time'+pendingClass(time === '미정')+'">'+time+'</div>';
+  return (
+    '<div class="timeline-item'+(last ? '' : ' has-connector')+(clickable ? ' day-item' : '')+'"'
+      + (clickable ? ' data-day="'+day+'" data-id="'+id+'" role="button" tabindex="0"' : '')
+      + '>'
+      + (last ? '' : '<div class="rail-line"></div>')
+      + '<div class="ti-top">'
+        + '<div class="rail"><div class="icon-dot" style="'+catStyle(cat)+'">'+icon(c.icon,18)+'</div></div>'
+        + '<div class="t-row">'
+          + '<div class="t-title">'+title+'</div>'
+          + (clickable
+              ? '<div class="exp-amount-wrap">'+timeHtml+'<div class="exp-drag" aria-label="순서 변경"></div></div>'
+              : timeHtml)
+        + '</div>'
+      + '</div>'
+      + '<div class="ti-rest">'+placeHtml+'</div>'
+    + '</div>'
+  );
+}
+
+function itemHead(cat, direction, date){
+  return '<div class="item-head"><span class="item-direction" style="color:'+catColor(cat)+'">'+direction+'</span><span class="item-date">'+date+'</span></div>';
+}
+
+function sectionLabel(cat, label){
+  return (
+    '<div class="section-label" style="margin-bottom:var(--space-4)">'
+      + '<div class="text" style="padding-left:4px">'+label+'</div>'
+    + '</div>'
+  );
+}
+
+function renderHome(){
+  return (
+    '<div class="screen">'
+    + '<div class="section">'
+      + sectionLabel('flight','항공')
+      + '<div class="card"><div class="stack">'
+        + '<div class="leg">'
+          + itemHead('flight','가는 편','8월 24일(월)')
+          + '<div class="row">'
+            + '<div class="stop"><div class="time">13:20</div><div class="city">청주</div></div>'
+            + '<div class="path"><div class="line-row"><div class="line"></div><span style="color:'+catColor('flight')+'">'+icon('flight',18)+'</span><div class="line"></div></div><div class="flightno">RF356</div></div>'
+            + '<div class="stop"><div class="time">15:50</div><div class="city">신치토세</div></div>'
+          + '</div>'
+        + '</div>'
+        + '<div class="divider"></div>'
+        + '<div class="leg">'
+          + itemHead('flight','오는 편','8월 28일(금)')
+          + '<div class="row">'
+            + '<div class="stop"><div class="time">16:50</div><div class="city">신치토세</div></div>'
+            + '<div class="path"><div class="line-row"><div class="line"></div><span style="color:'+catColor('flight')+'">'+icon('flight',18)+'</span><div class="line"></div></div><div class="flightno">RF355</div></div>'
+            + '<div class="stop"><div class="time">19:45</div><div class="city">청주</div></div>'
+          + '</div>'
+        + '</div>'
+      + '</div></div>'
+    + '</div>'
+    + '<div class="section">'
+      + sectionLabel('hotel','숙소')
+      + '<div class="card">'
+        + itemHead('flight','Day 1~5','8월 24일(월) ~ 8월 28일(금)')
+        + '<div class="city">그랑벨 호텔 스스키노</div>'
+      + '</div>'
+    + '</div>'
+    + '</div>'
+  );
+}
+
+function freeDay(){
+  return [
+    { cat:'leisure', time:'오전', title:'오전 자유 일정', place:'미정' },
+    { cat:'leisure', time:'오후', title:'오후 자유 일정', place:'미정', last:true },
+  ];
+}
+
+/* days share no array references (each freeDay() call is a fresh copy) so
+   editing/deleting an item on one day never mutates another day's list. */
+const DEFAULT_DAY_TIMELINES = [
+  null, // index 0 = home
+  [
+    { cat:'flight', time:'13:20', title:'청주 출발', place:'RF356' },
+    { cat:'flight', time:'15:50', title:'신치토세 도착' },
+    { cat:'transport', time:'16:30', title:'리무진 버스로 스스키노 이동', place:'신치토세공항 → 스스키노' },
+    { cat:'leisure', time:'오후', title:'오후 자유 일정', place:'미정' },
+    { cat:'hotel', time:'저녁', title:'숙소 체크인', place:'그랑벨 호텔 스스키노', last:true },
+  ],
+  freeDay(),
+  freeDay(),
+  freeDay(),
+  [
+    { cat:'hotel', time:'오전', title:'숙소 체크아웃', place:'그랑벨 호텔 스스키노' },
+    { cat:'leisure', time:'오전', title:'오전 자유 일정', place:'미정' },
+    { cat:'flight', time:'16:50', title:'신치토세 출발', place:'RF355' },
+    { cat:'flight', time:'19:45', title:'청주 도착', last:true },
+  ],
+];
+
+const DAY_TIMELINES_KEY = 'sapporo-day-timelines';
+/* bump this whenever DEFAULT_DAY_TIMELINES changes shape/content during
+   design iteration, so returning tabs reseed instead of keeping stale data */
+const DAY_TIMELINES_VERSION = 1;
+const DAY_TIMELINES_VERSION_KEY = 'sapporo-day-timelines-version';
+
+function loadDayTimelines(){
+  const seeded = DEFAULT_DAY_TIMELINES.map((day, di) =>
+    day === null ? null : day.map((it, ii) => Object.assign({ id: 'd'+di+'-'+ii }, it))
+  );
+  if (localStorage.getItem(DAY_TIMELINES_VERSION_KEY) !== String(DAY_TIMELINES_VERSION)){
+    localStorage.setItem(DAY_TIMELINES_KEY, JSON.stringify(seeded));
+    localStorage.setItem(DAY_TIMELINES_VERSION_KEY, String(DAY_TIMELINES_VERSION));
+    return seeded;
+  }
+  try {
+    const stored = JSON.parse(localStorage.getItem(DAY_TIMELINES_KEY));
+    if (Array.isArray(stored)) return stored;
+  } catch(e){}
+  localStorage.setItem(DAY_TIMELINES_KEY, JSON.stringify(seeded));
+  return seeded;
+}
+let DAY_TIMELINES = loadDayTimelines();
+function saveDayTimelines(){ localStorage.setItem(DAY_TIMELINES_KEY, JSON.stringify(DAY_TIMELINES)); }
+
+function renderDay(index){
+  return (
+    '<div class="screen timeline">'
+    + DAY_TIMELINES[index].map(it => timelineItem(it, index)).join('')
+    + '</div>'
+  );
+}
+
+const BUDGET_KEY = 'sapporo-budget';
+function loadBudget(){
+  const v = Number(localStorage.getItem(BUDGET_KEY));
+  return v > 0 ? v : 2500000;
+}
+let BUDGET = loadBudget();
+function saveBudget(){ localStorage.setItem(BUDGET_KEY, String(BUDGET)); }
+
+/* amount: null = 아직 미정 (금액 확정되면 채워 넣기).
+   전체 지출 목록은 id를 붙여 localStorage에 통째로 저장 — 기본 항목과
+   + 버튼으로 추가한 항목을 구분 없이 똑같이 삭제할 수 있게 하기 위함. */
+const DEFAULT_EXPENSES = [
+  { cat:'flight', title:'청주↔신치토세 왕복 항공권', memo:'트래블버킷 하나카드', amount:799490 },
+];
+
+const EXPENSES_KEY = 'sapporo-expenses';
+/* bump this whenever DEFAULT_EXPENSES changes shape/content during design
+   iteration, so returning tabs reseed instead of keeping stale cached data */
+const EXPENSES_VERSION = 2;
+const EXPENSES_VERSION_KEY = 'sapporo-expenses-version';
+
+function loadExpenses(){
+  const seeded = DEFAULT_EXPENSES.map((e,i) => Object.assign({ id: 'e'+i }, e));
+  if (localStorage.getItem(EXPENSES_VERSION_KEY) !== String(EXPENSES_VERSION)){
+    localStorage.setItem(EXPENSES_KEY, JSON.stringify(seeded));
+    localStorage.setItem(EXPENSES_VERSION_KEY, String(EXPENSES_VERSION));
+    return seeded;
+  }
+  try {
+    const stored = JSON.parse(localStorage.getItem(EXPENSES_KEY));
+    if (Array.isArray(stored) && stored.length) return stored;
+  } catch(e){}
+  localStorage.setItem(EXPENSES_KEY, JSON.stringify(seeded));
+  return seeded;
+}
+let EXPENSES = loadExpenses();
+function saveExpenses(){ localStorage.setItem(EXPENSES_KEY, JSON.stringify(EXPENSES)); }
+function deleteExpense(id){
+  EXPENSES = EXPENSES.filter(e => e.id !== id);
+  saveExpenses();
+  renderContent();
+}
+
+function formatWon(n){ return n.toLocaleString('ko-KR')+'원'; }
+
+function expenseRow(e, last){
+  const c = CAT[e.cat];
+  const amountHtml = e.amount == null ? '미정' : formatWon(e.amount);
+  const placeHtml = e.memo
+    ? '<div class="t-place">- '+e.memo+'</div>'
+    : '<div class="t-place" style="visibility:hidden">-</div>';
+  return (
+    '<div class="timeline-item exp-item'+(last ? '' : ' has-connector')+'" data-id="'+e.id+'" role="button" tabindex="0">'
+      + '<div class="ti-top">'
+        + '<div class="rail"><div class="icon-dot" style="'+catStyle(e.cat)+'">'+icon(c.icon,18)+'</div></div>'
+        + '<div class="t-row">'
+          + '<div class="t-title">'+e.title+'</div>'
+          + '<div class="exp-amount-wrap"><div class="t-time'+pendingClass(e.amount == null)+'">'+amountHtml+'</div><div class="exp-drag" aria-label="순서 변경"></div></div>'
+        + '</div>'
+      + '</div>'
+      + '<div class="ti-rest">'+placeHtml+'</div>'
+    + '</div>'
+  );
+}
+
+function renderExpense(){
+  const expenses = EXPENSES;
+  const known = expenses.filter(e => e.amount != null);
+  const pendingCount = expenses.length - known.length;
+  const total = known.reduce((s,e) => s + e.amount, 0);
+  const balance = BUDGET - total;
+  const overBudget = total > BUDGET;
+  const spentPct = BUDGET > 0 ? Math.min(total / BUDGET, 1) * 100 : 0;
+  const meterColor = overBudget ? 'rgb(var(--status-danger-rgb))' : 'rgb(var(--brand-primary-rgb))';
+  const rowsHtml = expenses.map((e,i) => expenseRow(e, i === expenses.length - 1)).join('');
+  return (
+    '<div class="screen">'
+    + '<div class="section">'
+      + '<div class="section-label" style="justify-content:space-between;margin-bottom:var(--space-4)">'
+        + '<div class="text" style="padding-left:4px">지출 현황'+(pendingCount > 0 ? ' (<span class="pending">미정</span> '+pendingCount+'건 제외)' : '')+'</div>'
+        + '<button type="button" class="add-btn" id="addExpenseBtn" aria-label="지출 추가">'+icon('plus',16)+'</button>'
+      + '</div>'
+      + '<div class="card">'
+        + '<div class="budget-rows">'
+          + '<div class="budget-stat-label">사용</div><div class="budget-stat-value danger">'+formatWon(total)+'</div>'
+          + '<div class="budget-balance" id="balanceAmount" role="button" tabindex="0">'
+            + '<div class="budget-stat-label">잔액</div><div class="budget-stat-value">'+formatWon(balance)+'</div>'
+          + '</div>'
+        + '</div>'
+        + '<div class="budget-meter"><div class="budget-meter-fill" style="width:'+spentPct+'%;background:'+meterColor+'"></div></div>'
+      + '</div>'
+    + '</div>'
+    + '<div class="section">'
+      + '<div id="expenseList">'+rowsHtml+'</div>'
+    + '</div>'
+    + '</div>'
+  );
+}
+
+/* every "add/edit X" modal (expense, day item) offers the same
+   CAT_PICKER_CATS grid and only differs in which element it fills and
+   which `selected*Cat` variable it reads/writes — one factory instead of
+   two copies of the same render+click-binding logic. */
+function makeCatPicker(elId, getSelected, setSelected){
+  function render(){
+    const el = document.getElementById(elId);
+    el.innerHTML = CAT_PICKER_CATS.map(c =>
+      '<button type="button" class="cat-btn'+(c.key === getSelected() ? ' active' : '')+'" data-cat="'+c.key+'" '
+        + 'style="'+catStyle(c.key)+'" aria-label="'+c.label+'">'+icon(CAT[c.key].icon,18)+'</button>'
+    ).join('');
+    el.querySelectorAll('.cat-btn').forEach(btn => {
+      btn.addEventListener('click', () => { setSelected(btn.dataset.cat); render(); });
+    });
+  }
+  return render;
+}
+
+let selectedAddCat = 'food';
+const renderCatPicker = makeCatPicker('catPicker', () => selectedAddCat, (v) => { selectedAddCat = v; });
+
+let editingId = null;
+
+function openExpenseModal(id){
+  editingId = id || null;
+  const item = editingId ? EXPENSES.find(e => e.id === editingId) : null;
+  document.getElementById('modalTitle').textContent = item ? '지출 수정' : '지출 추가';
+  document.getElementById('expAddBtn').textContent = item ? '저장' : '추가';
+  document.getElementById('expDeleteBtn').style.display = item ? '' : 'none';
+  document.getElementById('expTitleInput').value = item ? item.title : '';
+  document.getElementById('expMemoInput').value = item && item.memo ? item.memo : '';
+  document.getElementById('expAmountInput').value = item && item.amount != null ? item.amount.toLocaleString('ko-KR') : '';
+  selectedAddCat = item ? item.cat : 'food';
+  renderCatPicker();
+  document.getElementById('expenseModalBackdrop').classList.add('open');
+  document.getElementById('expTitleInput').focus();
+}
+function closeExpenseModal(){
+  document.getElementById('expenseModalBackdrop').classList.remove('open');
+  editingId = null;
+}
+function submitExpense(){
+  const title = document.getElementById('expTitleInput').value.trim();
+  const memo = document.getElementById('expMemoInput').value.trim();
+  const amountRaw = document.getElementById('expAmountInput').value.replace(/,/g, '');
+  const amount = Number(amountRaw);
+  if (!title || !amountRaw || !(amount > 0)) return;
+  if (editingId){
+    const item = EXPENSES.find(e => e.id === editingId);
+    if (item){ item.cat = selectedAddCat; item.title = title; item.memo = memo; item.amount = amount; }
+  } else {
+    EXPENSES.push({ id:'e'+Date.now(), cat: selectedAddCat, title: title, memo: memo, amount: amount });
+  }
+  saveExpenses();
+  closeExpenseModal();
+  renderContent();
+}
+
+function liveFormatAmount(e){
+  const digits = e.target.value.replace(/[^0-9]/g, '');
+  e.target.value = digits ? Number(digits).toLocaleString('ko-KR') : '';
+}
+document.getElementById('expAmountInput').addEventListener('input', liveFormatAmount);
+document.getElementById('expCancelBtn').addEventListener('click', closeExpenseModal);
+document.getElementById('expAddBtn').addEventListener('click', submitExpense);
+document.getElementById('expDeleteBtn').addEventListener('click', () => {
+  if (editingId) deleteExpense(editingId);
+  closeExpenseModal();
+});
+document.getElementById('expenseModalBackdrop').addEventListener('click', (e) => {
+  if (e.target.id === 'expenseModalBackdrop') closeExpenseModal();
+});
+/* ---- day timeline item edit modal (mirrors the expense edit modal) ---- */
+let selectedItemCat = 'food';
+const renderItemCatPicker = makeCatPicker('itemCatPicker', () => selectedItemCat, (v) => { selectedItemCat = v; });
+
+let editingDay = null;
+let editingItemId = null;
+
+function openItemModal(day, id){
+  const item = id ? DAY_TIMELINES[day].find(it => it.id === id) : null;
+  editingDay = day;
+  editingItemId = item ? id : null;
+  document.getElementById('itemModalTitle').textContent = item ? '일정 수정' : '일정 추가';
+  document.getElementById('itemSaveBtn').textContent = item ? '저장' : '추가';
+  document.getElementById('itemDeleteBtn').style.display = item ? '' : 'none';
+  document.getElementById('itemTitleInput').value = item ? item.title : '';
+  document.getElementById('itemTimeInput').value = item ? item.time : '';
+  document.getElementById('itemPlaceInput').value = item && item.place ? item.place : '';
+  selectedItemCat = item ? item.cat : 'food';
+  renderItemCatPicker();
+  document.getElementById('itemModalBackdrop').classList.add('open');
+  document.getElementById('itemTitleInput').focus();
+}
+function closeItemModal(){
+  document.getElementById('itemModalBackdrop').classList.remove('open');
+  editingDay = null;
+  editingItemId = null;
+}
+function submitItem(){
+  const title = document.getElementById('itemTitleInput').value.trim();
+  const time = document.getElementById('itemTimeInput').value.trim();
+  const place = document.getElementById('itemPlaceInput').value.trim();
+  if (!title || !time) return;
+  const arr = DAY_TIMELINES[editingDay];
+  if (editingItemId){
+    const item = arr.find(it => it.id === editingItemId);
+    if (item){ item.cat = selectedItemCat; item.title = title; item.time = time; item.place = place; }
+  } else {
+    if (arr.length) delete arr[arr.length - 1].last;
+    arr.push({ id: 'd'+editingDay+'-'+Date.now(), cat: selectedItemCat, title: title, time: time, place: place, last: true });
+  }
+  saveDayTimelines();
+  closeItemModal();
+  renderContent();
+}
+function deleteItem(){
+  const arr = DAY_TIMELINES[editingDay];
+  const idx = arr.findIndex(it => it.id === editingItemId);
+  if (idx === -1) return;
+  const wasLast = !!arr[idx].last;
+  arr.splice(idx, 1);
+  if (wasLast && arr.length) arr[arr.length - 1].last = true;
+  saveDayTimelines();
+  closeItemModal();
+  renderContent();
+}
+
+document.getElementById('itemCancelBtn').addEventListener('click', closeItemModal);
+document.getElementById('itemSaveBtn').addEventListener('click', submitItem);
+document.getElementById('itemDeleteBtn').addEventListener('click', deleteItem);
+document.getElementById('itemModalBackdrop').addEventListener('click', (e) => {
+  if (e.target.id === 'itemModalBackdrop') closeItemModal();
+});
+
+function goToDay(d){
+  activeDay = d;
+  renderContent();
+  /* days differ a lot in length (5-item Day1 vs a 2-item free day), so
+     without this the leftover scroll position can snap/jump once the
+     shorter page settles */
+  document.getElementById('content').scrollTop = 0;
+}
+
+document.getElementById('content').addEventListener('click', (e) => {
+  if (e.target.closest('#addExpenseBtn')) { openExpenseModal(); return; }
+  if (e.target.closest('#balanceAmount')) { openBudgetModal(); return; }
+  const dayStepBtn = e.target.closest('[data-day-step]');
+  if (dayStepBtn) {
+    const next = activeDay + Number(dayStepBtn.dataset.dayStep);
+    if (next >= 1 && next <= 5) goToDay(next);
+    return;
+  }
+  if (e.target.closest('.exp-drag')) return;
+  const addDayBtn = e.target.closest('[data-add-day]');
+  if (addDayBtn) { openItemModal(Number(addDayBtn.dataset.addDay)); return; }
+  const expRow = e.target.closest('.exp-item[data-id]');
+  if (expRow) { openExpenseModal(expRow.dataset.id); return; }
+  const dayRow = e.target.closest('.day-item[data-id]');
+  if (dayRow) { openItemModal(Number(dayRow.dataset.day), dayRow.dataset.id); return; }
+});
+document.getElementById('content').addEventListener('keydown', (e) => {
+  if (e.key !== 'Enter' && e.key !== ' ') return;
+  if (e.target.closest('#balanceAmount')) { e.preventDefault(); openBudgetModal(); return; }
+  const expRow = e.target.closest('.exp-item[data-id]');
+  if (expRow) { e.preventDefault(); openExpenseModal(expRow.dataset.id); return; }
+  const dayRow = e.target.closest('.day-item[data-id]');
+  if (dayRow) { e.preventDefault(); openItemModal(Number(dayRow.dataset.day), dayRow.dataset.id); }
+});
+
+/* ---- drag-to-reorder lists (pointer events cover mouse + touch) ----
+   shared by the expense list and each day's timeline: dragSelector picks
+   which item class the current drag belongs to, so move/end only ever
+   look at siblings of the same kind. */
+let dragRow = null;
+let dragSelector = null;
+
+function onDragStart(e){
+  const row = e.target.closest('.exp-item, .day-item');
+  if (!row) return;
+  e.preventDefault();
+  dragRow = row;
+  dragSelector = row.classList.contains('exp-item') ? '.exp-item' : '.day-item';
+  row.setPointerCapture(e.pointerId);
+  row.classList.add('dragging');
+  document.addEventListener('pointermove', onDragMove);
+  document.addEventListener('pointerup', onDragEnd, { once:true });
+}
+
+function onDragMove(e){
+  if (!dragRow) return;
+  const list = dragRow.parentElement;
+  const siblings = [...list.querySelectorAll(dragSelector)].filter(el => el !== dragRow);
+  for (const sib of siblings){
+    const rect = sib.getBoundingClientRect();
+    const mid = rect.top + rect.height / 2;
+    const dragIsAfter = !!(dragRow.compareDocumentPosition(sib) & Node.DOCUMENT_POSITION_PRECEDING);
+    if (e.clientY < mid && dragIsAfter){ list.insertBefore(dragRow, sib); break; }
+    if (e.clientY > mid && !dragIsAfter){ list.insertBefore(dragRow, sib.nextSibling); break; }
+  }
+}
+
+function onDragEnd(){
+  if (!dragRow) return;
+  dragRow.classList.remove('dragging');
+  document.removeEventListener('pointermove', onDragMove);
+  const list = dragRow.parentElement;
+  const ids = [...list.querySelectorAll(dragSelector)].map(el => el.dataset.id);
+  if (dragSelector === '.exp-item'){
+    EXPENSES = ids.map(id => EXPENSES.find(exp => exp.id === id));
+    saveExpenses();
+    dragRow = null;
+  } else {
+    const day = Number(dragRow.dataset.day);
+    const arr = DAY_TIMELINES[day];
+    const reordered = ids.map(id => arr.find(it => it.id === id));
+    reordered.forEach(it => { delete it.last; });
+    reordered[reordered.length - 1].last = true;
+    DAY_TIMELINES[day] = reordered;
+    saveDayTimelines();
+    dragRow = null;
+    renderContent(); // connector line placement is baked in at render time, so re-draw once the order (and last item) has settled
+  }
+}
+
+function attachDragHandlers(){
+  document.querySelectorAll('.exp-drag').forEach(handle => {
+    handle.addEventListener('pointerdown', onDragStart);
+  });
+}
+
+function openBudgetModal(){
+  document.getElementById('currentBudgetLabel').textContent = '현재 예산: '+formatWon(BUDGET);
+  document.getElementById('budgetInput').value = BUDGET.toLocaleString('ko-KR');
+  document.getElementById('budgetModalBackdrop').classList.add('open');
+  document.getElementById('budgetInput').focus();
+}
+function closeBudgetModal(){
+  document.getElementById('budgetModalBackdrop').classList.remove('open');
+}
+function submitBudget(){
+  const raw = document.getElementById('budgetInput').value.replace(/,/g, '');
+  const val = Number(raw);
+  if (!raw || !(val > 0)) return;
+  BUDGET = val;
+  saveBudget();
+  closeBudgetModal();
+  renderContent();
+}
+document.getElementById('budgetInput').addEventListener('input', liveFormatAmount);
+document.getElementById('budgetCancelBtn').addEventListener('click', closeBudgetModal);
+document.getElementById('budgetSaveBtn').addEventListener('click', submitBudget);
+document.getElementById('budgetModalBackdrop').addEventListener('click', (e) => {
+  if (e.target.id === 'budgetModalBackdrop') closeBudgetModal();
+});
+
+const TABS = [
+  { key:'home', label:'홈' },
+  { key:'itinerary', label:'일정' },
+  { key:'expense', label:'지출' },
+];
+
+let activeIndex = 0;
+let activeDay = 1; // which Day1~5 is showing inside the 일정 tab
+
+function renderTabs(){
+  const bar = document.getElementById('tabbar');
+  bar.innerHTML = TABS.map((t, i) =>
+    '<button class="tab" role="tab" aria-selected="'+(i === activeIndex)+'" data-index="'+i+'">'+t.label+'</button>'
+  ).join('');
+  bar.querySelectorAll('.tab').forEach(el => {
+    el.addEventListener('click', () => setActive(Number(el.dataset.index)));
+  });
+}
+
+const DAY_DATES = [
+  null,
+  { num:24, dow:'월' },
+  { num:25, dow:'화' },
+  { num:26, dow:'수' },
+  { num:27, dow:'목' },
+  { num:28, dow:'금' },
+];
+
+function renderItinerary(){
+  const dd = DAY_DATES[activeDay];
+  return (
+    '<div class="day-picker">'
+      + '<div style="position:relative;display:flex;align-items:center;justify-content:center;gap:6px">'
+        + '<button type="button" class="day-step-btn" data-day-step="-1" aria-label="이전 날"'+(activeDay <= 1 ? ' disabled' : '')+'>'+icon('chevron-left',18)+'</button>'
+        + '<div class="section-label" style="margin-bottom:0">'
+          + '<div class="text">8월 '+dd.num+'일 ('+dd.dow+')</div>'
+        + '</div>'
+        + '<button type="button" class="day-step-btn" data-day-step="1" aria-label="다음 날"'+(activeDay >= 5 ? ' disabled' : '')+'>'+icon('chevron-right',18)+'</button>'
+        + '<button type="button" class="add-btn" data-add-day="'+activeDay+'" aria-label="일정 추가" style="position:absolute;right:0;top:50%;transform:translateY(-50%)">'+icon('plus',16)+'</button>'
+      + '</div>'
+    + '</div>'
+    + renderDay(activeDay)
+  );
+}
+
+function renderContent(){
+  const content = document.getElementById('content');
+  const key = TABS[activeIndex].key;
+  if (key === 'home') content.innerHTML = renderHome();
+  else if (key === 'expense') { content.innerHTML = renderExpense(); attachDragHandlers(); }
+  else { content.innerHTML = renderItinerary(); attachDragHandlers(); }
+}
+
+function setActive(i){
+  if (i === activeIndex) return;
+  activeIndex = i;
+  renderTabs();
+  renderContent();
+  document.getElementById('content').scrollTop = 0;
+}
+
+function renderDday(){
+  const toDay = (y,m,d) => new Date(y,m,d);
+  const start = toDay(2026,7,24);
+  const end = toDay(2026,7,28);
+  const now = new Date();
+  const today = toDay(now.getFullYear(), now.getMonth(), now.getDate());
+  const diff = Math.round((start - today) / 86400000);
+  const label = diff > 0 ? 'D-'+diff : (today <= end ? '여행 중' : '여행 종료');
+  document.getElementById('ddayBadge').textContent = label;
+}
+renderDday();
+renderTabs();
+renderContent();
+</script>
+
+</body>
+</html>
