@@ -428,7 +428,16 @@
   </div>
 </div>
 
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script>
+/* shared with 남편 — expenses/day items/budget live in Supabase (not
+   localStorage) so both phones read and write the same data, with
+   Realtime pushing any change to whichever device didn't make it. */
+const supabase = window.supabase.createClient(
+  'https://qenlhatnqnpgpssknzxw.supabase.co',
+  'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFlbmxoYXRucW5wZ3Bzc2tuenh3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODYwMDUyNjAsImV4cCI6MjEwMTU4MTI2MH0.QqGY7F_wl6cLgYmuIO53QtoXtt0MADIfQGzDyvJ2x8I'
+);
+
 const ICON_VIEWBOX = { flight: '0 0 24 24', hotel: '0 0 24 24', food: '0 0 24 24', coffee: '0 0 24 24', ticket: '0 0 24 24', plus: '0 0 24 24', bus: '0 0 24 24', exchange: '0 0 24 24', 'chevron-left': '0 0 24 24', 'chevron-right': '0 0 24 24' };
 
 const ICONS = {
@@ -488,7 +497,7 @@ const CAT_PICKER_CATS = [
   { key:'ticket',    label:'티켓' },
 ];
 
-function timelineItem({ id, cat, time, title, place, last }, day){
+function timelineItem({ id, cat, time, title, place }, day, last){
   const c = CAT[cat];
   const placeHtml = place
     ? '<div class="t-place">- '+(place === '미정' ? '<span class="pending">미정</span>' : place)+'</div>'
@@ -565,12 +574,14 @@ function renderHome(){
 function freeDay(){
   return [
     { cat:'leisure', time:'오전', title:'오전 자유 일정', place:'미정' },
-    { cat:'leisure', time:'오후', title:'오후 자유 일정', place:'미정', last:true },
+    { cat:'leisure', time:'오후', title:'오후 자유 일정', place:'미정' },
   ];
 }
 
 /* days share no array references (each freeDay() call is a fresh copy) so
-   editing/deleting an item on one day never mutates another day's list. */
+   editing/deleting an item on one day never mutates another day's list.
+   only used to seed the day_items table the very first time it's empty —
+   after that, Supabase is the source of truth. */
 const DEFAULT_DAY_TIMELINES = [
   null, // index 0 = home
   [
@@ -578,7 +589,7 @@ const DEFAULT_DAY_TIMELINES = [
     { cat:'flight', time:'15:50', title:'신치토세 도착' },
     { cat:'transport', time:'16:30', title:'리무진 버스로 스스키노 이동', place:'신치토세공항 → 스스키노' },
     { cat:'leisure', time:'오후', title:'오후 자유 일정', place:'미정' },
-    { cat:'hotel', time:'저녁', title:'숙소 체크인', place:'그랑벨 호텔 스스키노', last:true },
+    { cat:'hotel', time:'저녁', title:'숙소 체크인', place:'그랑벨 호텔 스스키노' },
   ],
   freeDay(),
   freeDay(),
@@ -587,84 +598,68 @@ const DEFAULT_DAY_TIMELINES = [
     { cat:'hotel', time:'오전', title:'숙소 체크아웃', place:'그랑벨 호텔 스스키노' },
     { cat:'leisure', time:'오전', title:'오전 자유 일정', place:'미정' },
     { cat:'flight', time:'16:50', title:'신치토세 출발', place:'RF355' },
-    { cat:'flight', time:'19:45', title:'청주 도착', last:true },
+    { cat:'flight', time:'19:45', title:'청주 도착' },
   ],
 ];
 
-const DAY_TIMELINES_KEY = 'sapporo-day-timelines';
-/* bump this whenever DEFAULT_DAY_TIMELINES changes shape/content during
-   design iteration, so returning tabs reseed instead of keeping stale data */
-const DAY_TIMELINES_VERSION = 1;
-const DAY_TIMELINES_VERSION_KEY = 'sapporo-day-timelines-version';
+let DAY_TIMELINES = [null, [], [], [], [], []];
 
-function loadDayTimelines(){
-  const seeded = DEFAULT_DAY_TIMELINES.map((day, di) =>
-    day === null ? null : day.map((it, ii) => Object.assign({ id: 'd'+di+'-'+ii }, it))
-  );
-  if (localStorage.getItem(DAY_TIMELINES_VERSION_KEY) !== String(DAY_TIMELINES_VERSION)){
-    localStorage.setItem(DAY_TIMELINES_KEY, JSON.stringify(seeded));
-    localStorage.setItem(DAY_TIMELINES_VERSION_KEY, String(DAY_TIMELINES_VERSION));
-    return seeded;
+async function loadDayTimelines(){
+  const { data, error } = await supabase.from('day_items').select('*').order('day').order('position');
+  if (error){ console.error(error); return; }
+  let rows = data;
+  if (rows.length === 0){
+    rows = [];
+    DEFAULT_DAY_TIMELINES.forEach((day, di) => {
+      if (day === null) return;
+      day.forEach((it, ii) => rows.push({ id:'d'+di+'-'+ii, day:di, cat:it.cat, time:it.time, title:it.title, place:it.place, position:ii }));
+    });
+    supabase.from('day_items').insert(rows);
   }
-  try {
-    const stored = JSON.parse(localStorage.getItem(DAY_TIMELINES_KEY));
-    if (Array.isArray(stored)) return stored;
-  } catch(e){}
-  localStorage.setItem(DAY_TIMELINES_KEY, JSON.stringify(seeded));
-  return seeded;
+  const grouped = [null, [], [], [], [], []];
+  rows.forEach(r => grouped[r.day].push(r));
+  DAY_TIMELINES = grouped;
 }
-let DAY_TIMELINES = loadDayTimelines();
-function saveDayTimelines(){ localStorage.setItem(DAY_TIMELINES_KEY, JSON.stringify(DAY_TIMELINES)); }
 
 function renderDay(index){
+  const items = DAY_TIMELINES[index];
   return (
     '<div class="screen timeline">'
-    + DAY_TIMELINES[index].map(it => timelineItem(it, index)).join('')
+    + items.map((it,i) => timelineItem(it, index, i === items.length - 1)).join('')
     + '</div>'
   );
 }
 
-const BUDGET_KEY = 'sapporo-budget';
-function loadBudget(){
-  const v = Number(localStorage.getItem(BUDGET_KEY));
-  return v > 0 ? v : 2500000;
+let BUDGET = 2500000;
+async function loadBudget(){
+  const { data, error } = await supabase.from('app_settings').select('value').eq('key','budget').maybeSingle();
+  if (error){ console.error(error); return; }
+  if (data) BUDGET = Number(data.value);
 }
-let BUDGET = loadBudget();
-function saveBudget(){ localStorage.setItem(BUDGET_KEY, String(BUDGET)); }
 
-/* amount: null = 아직 미정 (금액 확정되면 채워 넣기).
-   전체 지출 목록은 id를 붙여 localStorage에 통째로 저장 — 기본 항목과
-   + 버튼으로 추가한 항목을 구분 없이 똑같이 삭제할 수 있게 하기 위함. */
+/* amount: null = 아직 미정 (금액 확정되면 채워 넣기). only used to seed the
+   expenses table the very first time it's empty. */
 const DEFAULT_EXPENSES = [
   { cat:'flight', title:'청주↔신치토세 왕복 항공권', memo:'트래블버킷 하나카드', amount:799490 },
 ];
 
-const EXPENSES_KEY = 'sapporo-expenses';
-/* bump this whenever DEFAULT_EXPENSES changes shape/content during design
-   iteration, so returning tabs reseed instead of keeping stale cached data */
-const EXPENSES_VERSION = 2;
-const EXPENSES_VERSION_KEY = 'sapporo-expenses-version';
+let EXPENSES = [];
 
-function loadExpenses(){
-  const seeded = DEFAULT_EXPENSES.map((e,i) => Object.assign({ id: 'e'+i }, e));
-  if (localStorage.getItem(EXPENSES_VERSION_KEY) !== String(EXPENSES_VERSION)){
-    localStorage.setItem(EXPENSES_KEY, JSON.stringify(seeded));
-    localStorage.setItem(EXPENSES_VERSION_KEY, String(EXPENSES_VERSION));
-    return seeded;
+async function loadExpenses(){
+  const { data, error } = await supabase.from('expenses').select('*').order('position');
+  if (error){ console.error(error); return; }
+  if (data.length === 0){
+    const seeded = DEFAULT_EXPENSES.map((e,i) => Object.assign({ id:'e'+i, position:i }, e));
+    EXPENSES = seeded;
+    supabase.from('expenses').insert(seeded);
+  } else {
+    EXPENSES = data;
   }
-  try {
-    const stored = JSON.parse(localStorage.getItem(EXPENSES_KEY));
-    if (Array.isArray(stored) && stored.length) return stored;
-  } catch(e){}
-  localStorage.setItem(EXPENSES_KEY, JSON.stringify(seeded));
-  return seeded;
 }
-let EXPENSES = loadExpenses();
-function saveExpenses(){ localStorage.setItem(EXPENSES_KEY, JSON.stringify(EXPENSES)); }
 function deleteExpense(id){
   EXPENSES = EXPENSES.filter(e => e.id !== id);
-  saveExpenses();
   renderContent();
+  supabase.from('expenses').delete().eq('id', id);
 }
 
 function formatWon(n){ return n.toLocaleString('ko-KR')+'원'; }
@@ -772,11 +767,15 @@ function submitExpense(){
   if (!title || !amountRaw || !(amount > 0)) return;
   if (editingId){
     const item = EXPENSES.find(e => e.id === editingId);
-    if (item){ item.cat = selectedAddCat; item.title = title; item.memo = memo; item.amount = amount; }
+    if (item){
+      item.cat = selectedAddCat; item.title = title; item.memo = memo; item.amount = amount;
+      supabase.from('expenses').update({ cat:item.cat, title:item.title, memo:item.memo, amount:item.amount }).eq('id', item.id);
+    }
   } else {
-    EXPENSES.push({ id:'e'+Date.now(), cat: selectedAddCat, title: title, memo: memo, amount: amount });
+    const newItem = { id:'e'+Date.now(), cat: selectedAddCat, title: title, memo: memo, amount: amount, position: EXPENSES.length };
+    EXPENSES.push(newItem);
+    supabase.from('expenses').insert(newItem);
   }
-  saveExpenses();
   closeExpenseModal();
   renderContent();
 }
@@ -830,12 +829,15 @@ function submitItem(){
   const arr = DAY_TIMELINES[editingDay];
   if (editingItemId){
     const item = arr.find(it => it.id === editingItemId);
-    if (item){ item.cat = selectedItemCat; item.title = title; item.time = time; item.place = place; }
+    if (item){
+      item.cat = selectedItemCat; item.title = title; item.time = time; item.place = place;
+      supabase.from('day_items').update({ cat:item.cat, title:item.title, time:item.time, place:item.place }).eq('id', item.id);
+    }
   } else {
-    if (arr.length) delete arr[arr.length - 1].last;
-    arr.push({ id: 'd'+editingDay+'-'+Date.now(), cat: selectedItemCat, title: title, time: time, place: place, last: true });
+    const newItem = { id:'d'+editingDay+'-'+Date.now(), day: editingDay, cat: selectedItemCat, title: title, time: time, place: place, position: arr.length };
+    arr.push(newItem);
+    supabase.from('day_items').insert(newItem);
   }
-  saveDayTimelines();
   closeItemModal();
   renderContent();
 }
@@ -843,12 +845,10 @@ function deleteItem(){
   const arr = DAY_TIMELINES[editingDay];
   const idx = arr.findIndex(it => it.id === editingItemId);
   if (idx === -1) return;
-  const wasLast = !!arr[idx].last;
-  arr.splice(idx, 1);
-  if (wasLast && arr.length) arr[arr.length - 1].last = true;
-  saveDayTimelines();
+  const [removed] = arr.splice(idx, 1);
   closeItemModal();
   renderContent();
+  supabase.from('day_items').delete().eq('id', removed.id);
 }
 
 document.getElementById('itemCancelBtn').addEventListener('click', closeItemModal);
@@ -933,18 +933,18 @@ function onDragEnd(){
   const ids = [...list.querySelectorAll(dragSelector)].map(el => el.dataset.id);
   if (dragSelector === '.exp-item'){
     EXPENSES = ids.map(id => EXPENSES.find(exp => exp.id === id));
-    saveExpenses();
+    EXPENSES.forEach((e,i) => { e.position = i; });
     dragRow = null;
+    EXPENSES.forEach(e => { supabase.from('expenses').update({ position:e.position }).eq('id', e.id); });
   } else {
     const day = Number(dragRow.dataset.day);
     const arr = DAY_TIMELINES[day];
     const reordered = ids.map(id => arr.find(it => it.id === id));
-    reordered.forEach(it => { delete it.last; });
-    reordered[reordered.length - 1].last = true;
+    reordered.forEach((it,i) => { it.position = i; });
     DAY_TIMELINES[day] = reordered;
-    saveDayTimelines();
     dragRow = null;
-    renderContent(); // connector line placement is baked in at render time, so re-draw once the order (and last item) has settled
+    renderContent(); // connector line placement (last item) is derived from array order at render time, so re-draw once the new order has settled
+    reordered.forEach(it => { supabase.from('day_items').update({ position:it.position }).eq('id', it.id); });
   }
 }
 
@@ -968,9 +968,9 @@ function submitBudget(){
   const val = Number(raw);
   if (!raw || !(val > 0)) return;
   BUDGET = val;
-  saveBudget();
   closeBudgetModal();
   renderContent();
+  supabase.from('app_settings').upsert({ key:'budget', value: BUDGET });
 }
 document.getElementById('budgetInput').addEventListener('input', liveFormatAmount);
 document.getElementById('budgetCancelBtn').addEventListener('click', closeBudgetModal);
@@ -1050,9 +1050,26 @@ function renderDday(){
   const label = diff > 0 ? 'D-'+diff : (today <= end ? '여행 중' : '여행 종료');
   document.getElementById('ddayBadge').textContent = label;
 }
-renderDday();
-renderTabs();
-renderContent();
+/* any insert/update/delete on any of the three tables — from either phone,
+   including this one's own writes — triggers a full refetch+re-render.
+   The tables are tiny, so refetching the whole thing is simpler and safer
+   than merging individual change events. */
+function setupRealtime(){
+  supabase.channel('sapporo-sync')
+    .on('postgres_changes', { event:'*', schema:'public', table:'expenses' }, async () => { await loadExpenses(); renderContent(); })
+    .on('postgres_changes', { event:'*', schema:'public', table:'day_items' }, async () => { await loadDayTimelines(); renderContent(); })
+    .on('postgres_changes', { event:'*', schema:'public', table:'app_settings' }, async () => { await loadBudget(); renderContent(); })
+    .subscribe();
+}
+
+async function init(){
+  renderDday();
+  renderTabs();
+  await Promise.all([loadExpenses(), loadDayTimelines(), loadBudget()]);
+  renderContent();
+  setupRealtime();
+}
+init();
 </script>
 
 </body>
