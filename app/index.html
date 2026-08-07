@@ -792,6 +792,20 @@ function makeCatPicker(elId, getSelected, setSelected){
 let selectedAddCat = 'food';
 const renderCatPicker = makeCatPicker('catPicker', () => selectedAddCat, (v) => { selectedAddCat = v; });
 
+/* iOS Safari still auto-scrolls the page when a focused input is inside a
+   `position:fixed` ancestor, no matter what that ancestor's own overflow
+   is set to — the only thing that reliably stops it is putting `body`
+   itself into `position:fixed` while a modal (and its keyboard) is open,
+   so there's no document scroll position left for it to change. */
+function lockBodyScroll(){
+  document.body.style.position = 'fixed';
+  document.body.style.width = '100%';
+}
+function unlockBodyScroll(){
+  document.body.style.position = '';
+  document.body.style.width = '';
+}
+
 let editingId = null;
 
 function openExpenseModal(id){
@@ -809,10 +823,12 @@ function openExpenseModal(id){
   selectedAddCat = item ? item.cat : 'food';
   renderCatPicker();
   document.getElementById('expenseModalBackdrop').classList.add('open');
+  lockBodyScroll();
   document.getElementById('expTitleInput').focus();
 }
 function closeExpenseModal(){
   document.getElementById('expenseModalBackdrop').classList.remove('open');
+  unlockBodyScroll();
   editingId = null;
 }
 function submitExpense(){
@@ -875,10 +891,12 @@ function openItemModal(day, id){
   selectedItemCat = item ? item.cat : 'food';
   renderItemCatPicker();
   document.getElementById('itemModalBackdrop').classList.add('open');
+  lockBodyScroll();
   document.getElementById('itemTitleInput').focus();
 }
 function closeItemModal(){
   document.getElementById('itemModalBackdrop').classList.remove('open');
+  unlockBodyScroll();
   editingDay = null;
   editingItemId = null;
 }
@@ -977,10 +995,12 @@ function openBudgetModal(){
   document.getElementById('currentBudgetLabel').textContent = '현재 예산: '+formatWon(BUDGET);
   document.getElementById('budgetInput').value = BUDGET.toLocaleString('ko-KR');
   document.getElementById('budgetModalBackdrop').classList.add('open');
+  lockBodyScroll();
   document.getElementById('budgetInput').focus();
 }
 function closeBudgetModal(){
   document.getElementById('budgetModalBackdrop').classList.remove('open');
+  unlockBodyScroll();
 }
 function submitBudget(){
   const raw = document.getElementById('budgetInput').value.replace(/,/g, '');
