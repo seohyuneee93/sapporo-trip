@@ -375,20 +375,20 @@
     <div class="cat-picker" id="catPicker"></div>
     <div class="field">
       <label for="expTitleInput">항목명</label>
-      <input type="text" id="expTitleInput" placeholder="예: 저녁 식사" readonly>
+      <input type="text" id="expTitleInput" placeholder="예: 저녁 식사">
     </div>
     <div class="field">
       <label for="expMemoInput">메모 (선택)</label>
-      <input type="text" id="expMemoInput" placeholder="예: 트래블버킷 하나카드" readonly>
+      <input type="text" id="expMemoInput" placeholder="예: 트래블버킷 하나카드">
     </div>
     <div class="field">
       <label for="expAmountInput">금액</label>
-      <input type="text" id="expAmountInput" placeholder="0" inputmode="numeric" pattern="[0-9,]*" readonly>
+      <input type="text" id="expAmountInput" placeholder="0" inputmode="numeric" pattern="[0-9,]*">
     </div>
     <div class="modal-actions">
       <button type="button" class="btn-danger" id="expDeleteBtn" style="display:none">삭제</button>
-      <button type="button" class="day-step-btn" id="expMoveUpBtn" style="display:none" aria-label="위로 이동"><svg class="icon-svg" width="18" height="18" viewBox="0 0 24 24" fill="none"><path d="M7.41,15.41L12,10.83l4.59,4.58L18,14l-6,-6l-6,6z" fill="currentColor"/></svg></button>
-      <button type="button" class="day-step-btn" id="expMoveDownBtn" style="display:none" aria-label="아래로 이동"><svg class="icon-svg" width="18" height="18" viewBox="0 0 24 24" fill="none"><path d="M7.41,8.59L12,13.17l4.59,-4.58L18,10l-6,6l-6,-6z" fill="currentColor"/></svg></button>
+      <button type="button" class="day-step-btn" id="expMoveUpBtn" style="display:none" aria-label="위로 이동"></button>
+      <button type="button" class="day-step-btn" id="expMoveDownBtn" style="display:none" aria-label="아래로 이동"></button>
       <div style="flex:1"></div>
       <button type="button" class="btn-secondary" id="expCancelBtn">취소</button>
       <button type="button" class="btn-primary" id="expAddBtn">추가</button>
@@ -402,20 +402,20 @@
     <div class="cat-picker" id="itemCatPicker"></div>
     <div class="field">
       <label for="itemTitleInput">항목명</label>
-      <input type="text" id="itemTitleInput" placeholder="예: 오도리 공원 산책" readonly>
+      <input type="text" id="itemTitleInput" placeholder="예: 오도리 공원 산책">
     </div>
     <div class="field">
       <label for="itemTimeInput">시간</label>
-      <input type="text" id="itemTimeInput" placeholder="예: 16:30 또는 오후" readonly>
+      <input type="text" id="itemTimeInput" placeholder="예: 16:30 또는 오후">
     </div>
     <div class="field">
       <label for="itemPlaceInput">장소 (선택)</label>
-      <input type="text" id="itemPlaceInput" placeholder="예: 스스키노" readonly>
+      <input type="text" id="itemPlaceInput" placeholder="예: 스스키노">
     </div>
     <div class="modal-actions">
       <button type="button" class="btn-danger" id="itemDeleteBtn" style="display:none">삭제</button>
-      <button type="button" class="day-step-btn" id="itemMoveUpBtn" style="display:none" aria-label="위로 이동"><svg class="icon-svg" width="18" height="18" viewBox="0 0 24 24" fill="none"><path d="M7.41,15.41L12,10.83l4.59,4.58L18,14l-6,-6l-6,6z" fill="currentColor"/></svg></button>
-      <button type="button" class="day-step-btn" id="itemMoveDownBtn" style="display:none" aria-label="아래로 이동"><svg class="icon-svg" width="18" height="18" viewBox="0 0 24 24" fill="none"><path d="M7.41,8.59L12,13.17l4.59,-4.58L18,10l-6,6l-6,-6z" fill="currentColor"/></svg></button>
+      <button type="button" class="day-step-btn" id="itemMoveUpBtn" style="display:none" aria-label="위로 이동"></button>
+      <button type="button" class="day-step-btn" id="itemMoveDownBtn" style="display:none" aria-label="아래로 이동"></button>
       <div style="flex:1"></div>
       <button type="button" class="btn-secondary" id="itemCancelBtn">취소</button>
       <button type="button" class="btn-primary" id="itemSaveBtn">저장</button>
@@ -429,7 +429,7 @@
     <div class="exp-day" id="currentBudgetLabel" style="margin-bottom:var(--space-4)"></div>
     <div class="field">
       <label for="budgetInput">새 예산</label>
-      <input type="text" id="budgetInput" placeholder="0" inputmode="numeric" pattern="[0-9,]*" readonly>
+      <input type="text" id="budgetInput" placeholder="0" inputmode="numeric" pattern="[0-9,]*">
     </div>
     <div class="modal-actions">
       <div style="flex:1"></div>
@@ -483,6 +483,11 @@ function icon(name, size){
   const vb = ICON_VIEWBOX[name] || '0 0 20 20';
   return '<svg class="icon-svg" width="'+size+'" height="'+size+'" viewBox="'+vb+'" fill="none">'+ICONS[name]+'</svg>';
 }
+/* the modals' move-up/move-down buttons are static markup (not re-rendered
+   like the lists), so they get their icon once here instead of each
+   hand-duplicating the chevron SVG inline. */
+['expMoveUpBtn','itemMoveUpBtn'].forEach(id => { document.getElementById(id).innerHTML = icon('chevron-up', 18); });
+['expMoveDownBtn','itemMoveDownBtn'].forEach(id => { document.getElementById(id).innerHTML = icon('chevron-down', 18); });
 
 /* Category → accent color mapping (see :root token comment for the
    Toss-palette rationale). "flight" uses a sky-blue slot, kept a shade
@@ -800,20 +805,6 @@ function unlockBodyScroll(){
   document.body.style.position = '';
   document.body.style.width = '';
 }
-
-/* modal text fields start `readonly` in the HTML — a readonly input
-   doesn't bring up the keyboard on tap, so iOS never runs its "scroll
-   this into view for the keyboard" routine for the initial touch. We flip
-   readonly off in our own `focus` handler instead, and the keyboard shows
-   up (focus is already in a user-gesture call stack) without that
-   auto-scroll ever having been triggered — restoring readonly on blur so
-   the same field defeats the auto-scroll again next time it's tapped. */
-function deferKeyboardFocus(el){
-  el.addEventListener('focus', () => { el.removeAttribute('readonly'); });
-  el.addEventListener('blur', () => { el.setAttribute('readonly', ''); });
-}
-['expTitleInput','expMemoInput','expAmountInput','itemTitleInput','itemTimeInput','itemPlaceInput','budgetInput']
-  .forEach(id => deferKeyboardFocus(document.getElementById(id)));
 
 let editingId = null;
 
