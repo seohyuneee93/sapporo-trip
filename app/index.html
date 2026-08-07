@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <title>삿포로 여행 일정표</title>
-<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
 <meta name="description" content="8월 24일-28일 삿포로 여행 일정표">
 <meta name="theme-color" content="#3182F6">
 <link rel="manifest" href="manifest.json">
@@ -102,6 +102,7 @@
   html,body{
     margin:0; height:100%; overflow-x:hidden;
     background: var(--surface-sunken);
+    touch-action: pan-x pan-y;
   }
   body{
     font-family: var(--font-family-base);
@@ -323,7 +324,7 @@
   .field label{ display:block; font-size:var(--fs-3); color: var(--fg-tertiary); margin-bottom: var(--space-1); }
   .field input{
     width:100%; box-sizing:border-box; border:1px solid var(--border-default); border-radius: var(--radius-medium);
-    padding: var(--space-2) var(--space-3); font-size:var(--fs-3); color: var(--fg-default);
+    padding: var(--space-2) var(--space-3); font-size:16px; color: var(--fg-default);
     background: var(--surface-canvas); font-family: inherit;
   }
   .field input:focus{ outline:2px solid rgb(var(--brand-primary-rgb)); outline-offset:-1px; }
