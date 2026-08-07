@@ -114,7 +114,11 @@
 
   .shell{
     display:flex; flex-direction:column;
-    position: fixed; inset: 0;
+    position: fixed; top:0; left:0; right:0;
+    height: 100vh; height: 100dvh; /* dvh tracks the mobile browser's
+      address bar collapsing/expanding; plain inset:0 stays pinned to the
+      viewport size at load time and leaves a blank gap under the footer
+      once the toolbar auto-hides */
     max-width: 520px; margin: 0 auto;
     background: var(--surface-sunken);
     overflow: hidden;
@@ -192,11 +196,6 @@
   .content::-webkit-scrollbar-track{ background: transparent; }
   .content::-webkit-scrollbar-thumb{ background: var(--border-default); border-radius: 3px; }
   .content::-webkit-scrollbar-thumb:hover{ background: var(--border-strong); }
-  .footer{
-    flex: 0 0 auto; text-align:center; font-size:var(--fs-1); color: var(--fg-tertiary);
-    border-top: 1px solid var(--border-subtle); background: var(--surface-canvas);
-    padding: var(--space-2) var(--space-4) calc(env(safe-area-inset-bottom, 0px) + var(--space-2));
-  }
   .screen{ animation: enter .22s ease; }
   @keyframes enter{ from{ opacity:0; transform: translateY(4px); } to{ opacity:1; transform:none; } }
   @media (prefers-reduced-motion: reduce){ .screen{ animation:none; } }
@@ -359,8 +358,6 @@
   <div class="tabbar" id="tabbar" role="tablist" aria-label="일정 탭"></div>
 
   <div class="content" id="content"></div>
-
-  <div class="footer">made by Seohyun</div>
 </div>
 
 <div class="modal-backdrop" id="expenseModalBackdrop">
