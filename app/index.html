@@ -175,7 +175,7 @@
     background:none; color: rgb(var(--brand-primary-rgb)); cursor:pointer;
     display:flex; align-items:center; justify-content:center;
   }
-  .day-step-btn:disabled{ cursor:default; }
+  .day-step-btn:disabled{ cursor:default; opacity:0.3; }
   .day-step-btn:active:not(:disabled){ opacity:0.6; }
   .day-step-btn:focus-visible{ outline: 2px solid rgb(var(--brand-primary-rgb)); outline-offset: 2px; }
 
@@ -268,16 +268,6 @@
 
   .exp-day{ font-size:var(--fs-3); color: var(--fg-tertiary); margin-top: var(--space-1); }
   .exp-amount-wrap{ flex-shrink:0; }
-  /* shared by both draggable lists (expense rows and each day's timeline
-     items) since both render with the common .timeline-item base class.
-     A short tap on the row opens edit; holding it past LONG_PRESS_MS (see
-     script below) adds this class and switches into reorder-drag — the
-     pale brand-blue tint is the only cue that the hold "took". */
-  .exp-item, .day-item{ -webkit-user-select:none; user-select:none; -webkit-touch-callout:none; }
-  .timeline-item.dragging{
-    background: var(--brand-tint); box-shadow: var(--shadow-4);
-    border-radius: var(--radius-medium); position:relative; z-index:1;
-  }
   .add-btn{
     width:28px; height:28px; padding:0; border-radius:50%; flex-shrink:0; border:none; cursor:pointer;
     background: var(--brand-tint); color: rgb(var(--brand-primary-rgb));
@@ -384,6 +374,8 @@
     </div>
     <div class="modal-actions">
       <button type="button" class="btn-danger" id="expDeleteBtn" style="display:none">삭제</button>
+      <button type="button" class="day-step-btn" id="expMoveUpBtn" style="display:none" aria-label="위로 이동"><svg class="icon-svg" width="18" height="18" viewBox="0 0 24 24" fill="none"><path d="M7.41,15.41L12,10.83l4.59,4.58L18,14l-6,-6l-6,6z" fill="currentColor"/></svg></button>
+      <button type="button" class="day-step-btn" id="expMoveDownBtn" style="display:none" aria-label="아래로 이동"><svg class="icon-svg" width="18" height="18" viewBox="0 0 24 24" fill="none"><path d="M7.41,8.59L12,13.17l4.59,-4.58L18,10l-6,6l-6,-6z" fill="currentColor"/></svg></button>
       <div style="flex:1"></div>
       <button type="button" class="btn-secondary" id="expCancelBtn">취소</button>
       <button type="button" class="btn-primary" id="expAddBtn">추가</button>
@@ -409,6 +401,8 @@
     </div>
     <div class="modal-actions">
       <button type="button" class="btn-danger" id="itemDeleteBtn" style="display:none">삭제</button>
+      <button type="button" class="day-step-btn" id="itemMoveUpBtn" style="display:none" aria-label="위로 이동"><svg class="icon-svg" width="18" height="18" viewBox="0 0 24 24" fill="none"><path d="M7.41,15.41L12,10.83l4.59,4.58L18,14l-6,-6l-6,6z" fill="currentColor"/></svg></button>
+      <button type="button" class="day-step-btn" id="itemMoveDownBtn" style="display:none" aria-label="아래로 이동"><svg class="icon-svg" width="18" height="18" viewBox="0 0 24 24" fill="none"><path d="M7.41,8.59L12,13.17l4.59,-4.58L18,10l-6,6l-6,-6z" fill="currentColor"/></svg></button>
       <div style="flex:1"></div>
       <button type="button" class="btn-secondary" id="itemCancelBtn">취소</button>
       <button type="button" class="btn-primary" id="itemSaveBtn">저장</button>
@@ -454,12 +448,14 @@ function sbWrite(builder){
   builder.then(null, err => console.error('supabase write failed', err));
 }
 
-const ICON_VIEWBOX = { flight: '0 0 24 24', hotel: '0 0 24 24', food: '0 0 24 24', coffee: '0 0 24 24', ticket: '0 0 24 24', plus: '0 0 24 24', bus: '0 0 24 24', exchange: '0 0 24 24', wallet: '0 0 24 24', 'chevron-left': '0 0 24 24', 'chevron-right': '0 0 24 24' };
+const ICON_VIEWBOX = { flight: '0 0 24 24', hotel: '0 0 24 24', food: '0 0 24 24', coffee: '0 0 24 24', ticket: '0 0 24 24', plus: '0 0 24 24', bus: '0 0 24 24', exchange: '0 0 24 24', wallet: '0 0 24 24', 'chevron-left': '0 0 24 24', 'chevron-right': '0 0 24 24', 'chevron-up': '0 0 24 24', 'chevron-down': '0 0 24 24' };
 
 const ICONS = {
   flight: '<path d="M21,16v-2l-8,-5V3.5C13,2.67 12.33,2 11.5,2S10,2.67 10,3.5V9l-8,5v2l8,-2.5V19l-2,1.5V22l3.5,-1L15,22v-1.5L13,19v-5.5L21,16z" fill="currentColor"/>',
   'chevron-left': '<path d="M15.41,16.59L10.83,12l4.58,-4.59L14,6l-6,6l6,6z" fill="currentColor"/>',
   'chevron-right': '<path d="M10,6L8.59,7.41L13.17,12l-4.58,4.59L10,18l6,-6z" fill="currentColor"/>',
+  'chevron-up': '<path d="M7.41,15.41L12,10.83l4.59,4.58L18,14l-6,-6l-6,6z" fill="currentColor"/>',
+  'chevron-down': '<path d="M7.41,8.59L12,13.17l4.59,-4.58L18,10l-6,6l-6,-6z" fill="currentColor"/>',
   bus: '<path d="M4,16c0,0.88 0.39,1.67 1,2.22V20c0,0.55 0.45,1 1,1h1c0.55,0 1,-0.45 1,-1v-1h8v1c0,0.55 0.45,1 1,1h1c0.55,0 1,-0.45 1,-1v-1.78c0.61,-0.55 1,-1.34 1,-2.22V6c0,-3.5 -3.58,-4 -8,-4S4,2.5 4,6V16zM7.5,17c-0.83,0 -1.5,-0.67 -1.5,-1.5S6.67,14 7.5,14s1.5,0.67 1.5,1.5S8.33,17 7.5,17zM16.5,17c-0.83,0 -1.5,-0.67 -1.5,-1.5s0.67,-1.5 1.5,-1.5s1.5,0.67 1.5,1.5S17.33,17 16.5,17zM18,11H6V6h12V11z" fill="currentColor"/>',
   exchange: '<path d="M11.8,10.9c-2.27,-0.59 -3,-1.2 -3,-2.15c0,-1.09 1.01,-1.85 2.7,-1.85c1.78,0 2.44,0.85 2.5,2.1h2.21c-0.07,-1.72 -1.12,-3.3 -3.21,-3.81V3h-3v2.16c-1.94,0.42 -3.5,1.68 -3.5,3.61c0,2.31 1.91,3.46 4.7,4.13c2.5,0.6 3,1.48 3,2.41c0,0.69 -0.49,1.79 -2.7,1.79c-2.06,0 -2.87,-0.92 -2.98,-2.1h-2.2c0.12,2.19 1.76,3.42 3.68,3.83V21h3v-2.15c1.95,-0.37 3.5,-1.5 3.5,-3.55C15.5,12.29 13.35,11.5 11.8,10.9z" fill="currentColor"/>',
   hotel: '<path d="M7,13c1.66,0 3,-1.34 3,-3S8.66,7 7,7s-3,1.34 -3,3S5.34,13 7,13zM19,7h-8v7H3V5H1v15h2v-3h18v3h2v-9c0,-2.21 -1.79,-4 -4,-4z" fill="currentColor"/>',
@@ -681,6 +677,23 @@ function deleteExpense(id){
   sbWrite(sb.from('expenses').delete().eq('id', id));
 }
 
+function moveExpense(dir){
+  const idx = EXPENSES.findIndex(e => e.id === editingId);
+  const swapIdx = idx + dir;
+  if (idx === -1 || swapIdx < 0 || swapIdx >= EXPENSES.length) return;
+  [EXPENSES[idx], EXPENSES[swapIdx]] = [EXPENSES[swapIdx], EXPENSES[idx]];
+  EXPENSES.forEach((e,i) => { e.position = i; });
+  renderContent();
+  updateExpMoveBtns();
+  sbWrite(sb.from('expenses').update({ position:EXPENSES[idx].position }).eq('id', EXPENSES[idx].id));
+  sbWrite(sb.from('expenses').update({ position:EXPENSES[swapIdx].position }).eq('id', EXPENSES[swapIdx].id));
+}
+function updateExpMoveBtns(){
+  const idx = EXPENSES.findIndex(e => e.id === editingId);
+  document.getElementById('expMoveUpBtn').disabled = idx <= 0;
+  document.getElementById('expMoveDownBtn').disabled = idx === -1 || idx >= EXPENSES.length - 1;
+}
+
 function formatWon(n){ return n.toLocaleString('ko-KR')+'원'; }
 
 function expenseRow(e, last){
@@ -769,6 +782,9 @@ function openExpenseModal(id){
   document.getElementById('modalTitle').textContent = item ? '지출 수정' : '지출 추가';
   document.getElementById('expAddBtn').textContent = item ? '저장' : '추가';
   document.getElementById('expDeleteBtn').style.display = item ? '' : 'none';
+  document.getElementById('expMoveUpBtn').style.display = item ? '' : 'none';
+  document.getElementById('expMoveDownBtn').style.display = item ? '' : 'none';
+  updateExpMoveBtns();
   document.getElementById('expTitleInput').value = item ? item.title : '';
   document.getElementById('expMemoInput').value = item && item.memo ? item.memo : '';
   document.getElementById('expAmountInput').value = item && item.amount != null ? item.amount.toLocaleString('ko-KR') : '';
@@ -813,6 +829,8 @@ document.getElementById('expDeleteBtn').addEventListener('click', () => {
   if (editingId) deleteExpense(editingId);
   closeExpenseModal();
 });
+document.getElementById('expMoveUpBtn').addEventListener('click', () => moveExpense(-1));
+document.getElementById('expMoveDownBtn').addEventListener('click', () => moveExpense(1));
 document.getElementById('expenseModalBackdrop').addEventListener('click', (e) => {
   if (e.target.id === 'expenseModalBackdrop') closeExpenseModal();
 });
@@ -830,6 +848,9 @@ function openItemModal(day, id){
   document.getElementById('itemModalTitle').textContent = item ? '일정 수정' : '일정 추가';
   document.getElementById('itemSaveBtn').textContent = item ? '저장' : '추가';
   document.getElementById('itemDeleteBtn').style.display = item ? '' : 'none';
+  document.getElementById('itemMoveUpBtn').style.display = item ? '' : 'none';
+  document.getElementById('itemMoveDownBtn').style.display = item ? '' : 'none';
+  updateItemMoveBtns();
   document.getElementById('itemTitleInput').value = item ? item.title : '';
   document.getElementById('itemTimeInput').value = item ? item.time : '';
   document.getElementById('itemPlaceInput').value = item && item.place ? item.place : '';
@@ -872,10 +893,30 @@ function deleteItem(){
   renderContent();
   sbWrite(sb.from('day_items').delete().eq('id', removed.id));
 }
+function moveItem(dir){
+  const arr = DAY_TIMELINES[editingDay];
+  const idx = arr.findIndex(it => it.id === editingItemId);
+  const swapIdx = idx + dir;
+  if (idx === -1 || swapIdx < 0 || swapIdx >= arr.length) return;
+  [arr[idx], arr[swapIdx]] = [arr[swapIdx], arr[idx]];
+  arr.forEach((it,i) => { it.position = i; });
+  renderContent();
+  updateItemMoveBtns();
+  sbWrite(sb.from('day_items').update({ position:arr[idx].position }).eq('id', arr[idx].id));
+  sbWrite(sb.from('day_items').update({ position:arr[swapIdx].position }).eq('id', arr[swapIdx].id));
+}
+function updateItemMoveBtns(){
+  const arr = DAY_TIMELINES[editingDay];
+  const idx = arr.findIndex(it => it.id === editingItemId);
+  document.getElementById('itemMoveUpBtn').disabled = idx <= 0;
+  document.getElementById('itemMoveDownBtn').disabled = idx === -1 || idx >= arr.length - 1;
+}
 
 document.getElementById('itemCancelBtn').addEventListener('click', closeItemModal);
 document.getElementById('itemSaveBtn').addEventListener('click', submitItem);
 document.getElementById('itemDeleteBtn').addEventListener('click', deleteItem);
+document.getElementById('itemMoveUpBtn').addEventListener('click', () => moveItem(-1));
+document.getElementById('itemMoveDownBtn').addEventListener('click', () => moveItem(1));
 document.getElementById('itemModalBackdrop').addEventListener('click', (e) => {
   if (e.target.id === 'itemModalBackdrop') closeItemModal();
 });
@@ -890,7 +931,6 @@ function goToDay(d){
 }
 
 document.getElementById('content').addEventListener('click', (e) => {
-  if (suppressClick) { suppressClick = false; return; }
   if (e.target.closest('#addExpenseBtn')) { openExpenseModal(); return; }
   if (e.target.closest('#balanceAmount')) { openBudgetModal(); return; }
   const dayStepBtn = e.target.closest('[data-day-step]');
@@ -914,89 +954,6 @@ document.getElementById('content').addEventListener('keydown', (e) => {
   const dayRow = e.target.closest('.day-item[data-id]');
   if (dayRow) { e.preventDefault(); openItemModal(Number(dayRow.dataset.day), dayRow.dataset.id); }
 });
-
-/* ---- drag-to-reorder lists (pointer events cover mouse + touch) ----
-   shared by the expense list and each day's timeline: dragSelector picks
-   which item class the current drag belongs to, so move/end only ever
-   look at siblings of the same kind. A short tap on a row opens its edit
-   modal (the normal click handler above); holding it past LONG_PRESS_MS
-   without moving more than MOVE_CANCEL_PX switches that same press into a
-   reorder-drag instead — so there's no separate drag handle to find, just
-   tap vs. hold on the row itself. */
-const LONG_PRESS_MS = 450;
-const MOVE_CANCEL_PX = 8;
-let dragRow = null;
-let dragSelector = null;
-let pressTimer = null;
-let pressStart = null;
-let suppressClick = false;
-
-document.getElementById('content').addEventListener('pointerdown', (e) => {
-  const row = e.target.closest('.exp-item, .day-item');
-  if (!row) return;
-  pressStart = { x: e.clientX, y: e.clientY };
-  clearTimeout(pressTimer);
-  pressTimer = setTimeout(() => { pressTimer = null; onDragStart(row, e); }, LONG_PRESS_MS);
-});
-document.getElementById('content').addEventListener('pointermove', (e) => {
-  if (!pressTimer || !pressStart) return;
-  if (Math.abs(e.clientX - pressStart.x) > MOVE_CANCEL_PX || Math.abs(e.clientY - pressStart.y) > MOVE_CANCEL_PX){
-    clearTimeout(pressTimer); pressTimer = null;
-  }
-});
-document.getElementById('content').addEventListener('pointerup', () => {
-  if (pressTimer){ clearTimeout(pressTimer); pressTimer = null; }
-});
-document.getElementById('content').addEventListener('contextmenu', (e) => {
-  if (dragRow || pressTimer) e.preventDefault(); // no iOS callout/selection popup mid-press
-});
-
-function onDragStart(row, e){
-  e.preventDefault();
-  dragRow = row;
-  dragSelector = row.classList.contains('exp-item') ? '.exp-item' : '.day-item';
-  row.setPointerCapture(e.pointerId);
-  row.classList.add('dragging');
-  suppressClick = true; // the pointerup that ends this drag would otherwise also fire a click and open the edit modal
-  document.addEventListener('pointermove', onDragMove);
-  document.addEventListener('pointerup', onDragEnd, { once:true });
-}
-
-function onDragMove(e){
-  if (!dragRow) return;
-  const list = dragRow.parentElement;
-  const siblings = [...list.querySelectorAll(dragSelector)].filter(el => el !== dragRow);
-  for (const sib of siblings){
-    const rect = sib.getBoundingClientRect();
-    const mid = rect.top + rect.height / 2;
-    const dragIsAfter = !!(dragRow.compareDocumentPosition(sib) & Node.DOCUMENT_POSITION_PRECEDING);
-    if (e.clientY < mid && dragIsAfter){ list.insertBefore(dragRow, sib); break; }
-    if (e.clientY > mid && !dragIsAfter){ list.insertBefore(dragRow, sib.nextSibling); break; }
-  }
-}
-
-function onDragEnd(){
-  if (!dragRow) return;
-  dragRow.classList.remove('dragging');
-  document.removeEventListener('pointermove', onDragMove);
-  const list = dragRow.parentElement;
-  const ids = [...list.querySelectorAll(dragSelector)].map(el => el.dataset.id);
-  if (dragSelector === '.exp-item'){
-    EXPENSES = ids.map(id => EXPENSES.find(exp => exp.id === id));
-    EXPENSES.forEach((e,i) => { e.position = i; });
-    dragRow = null;
-    EXPENSES.forEach(e => { sbWrite(sb.from('expenses').update({ position:e.position }).eq('id', e.id)); });
-  } else {
-    const day = Number(dragRow.dataset.day);
-    const arr = DAY_TIMELINES[day];
-    const reordered = ids.map(id => arr.find(it => it.id === id));
-    reordered.forEach((it,i) => { it.position = i; });
-    DAY_TIMELINES[day] = reordered;
-    dragRow = null;
-    renderContent(); // connector line placement (last item) is derived from array order at render time, so re-draw once the new order has settled
-    reordered.forEach(it => { sbWrite(sb.from('day_items').update({ position:it.position }).eq('id', it.id)); });
-  }
-}
 
 function openBudgetModal(){
   document.getElementById('currentBudgetLabel').textContent = '현재 예산: '+formatWon(BUDGET);
