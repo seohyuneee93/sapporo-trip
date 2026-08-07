@@ -100,7 +100,7 @@
 
   *{ box-sizing: border-box; }
   html,body{
-    margin:0; height:100%; overflow-x:hidden;
+    margin:0; height:100%; overflow:hidden;
     background: var(--surface-sunken);
     touch-action: pan-x pan-y;
   }
@@ -306,11 +306,16 @@
      how tall the keyboard is; overflow-y:auto is the fallback if the panel
      + keyboard still don't both fit. */
   .modal-backdrop{
-    position:fixed; top:0; left:0; right:0; background:rgba(0,0,0,0.4);
-    height: 100vh; height: 100dvh; /* same reasoning as .shell: a static
-      inset:0 box doesn't track the viewport shrinking/growing as the
-      keyboard opens and closes on each field, which was shoving the panel
-      around every time focus moved between fields */
+    position:fixed; left:0; right:0; background:rgba(0,0,0,0.4);
+    top: var(--vvt, 0px); height: var(--vvh, 100dvh); /* iOS Safari doesn't
+      resize/reposition a `position:fixed` box against the keyboard at all
+      (dvh only reacts to the address bar, not the keyboard) — it instead
+      nudges the whole page during focus changes, which is the "screen
+      jumps up" every time you tap a field. --vvt/--vvh are written from
+      window.visualViewport in the script below and track the keyboard
+      exactly, so the backdrop's own box already ends exactly at the
+      visible edge and there's nothing left for the browser to "fix" by
+      scrolling anything. */
     display:none; align-items:flex-start; justify-content:center; z-index:100;
     padding: calc(env(safe-area-inset-top, 0px) + var(--space-5)) var(--space-5) var(--space-5);
     overflow-y:auto;
@@ -443,6 +448,23 @@
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script>
+/* iOS Safari never shrinks a `position:fixed` box for the on-screen
+   keyboard (only for the address bar, via dvh) — it instead nudges the
+   page during focus changes, which reads as the modal "jumping up" every
+   time you tap a different field. Mirroring window.visualViewport into
+   CSS vars lets .modal-backdrop's own fixed box track the keyboard
+   exactly, so there's nothing left for the browser to compensate for. */
+function syncViewportVars(){
+  if (!window.visualViewport) return;
+  document.documentElement.style.setProperty('--vvt', window.visualViewport.offsetTop + 'px');
+  document.documentElement.style.setProperty('--vvh', window.visualViewport.height + 'px');
+}
+if (window.visualViewport){
+  visualViewport.addEventListener('resize', syncViewportVars);
+  visualViewport.addEventListener('scroll', syncViewportVars);
+  syncViewportVars();
+}
+
 /* shared with 남편 — expenses/day items/budget live in Supabase (not
    localStorage) so both phones read and write the same data, with
    Realtime pushing any change to whichever device didn't make it. */
