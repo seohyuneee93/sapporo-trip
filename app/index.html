@@ -296,15 +296,26 @@
   }
   .budget-balance{ display:contents; cursor:pointer; }
 
-  /* ---- add-expense modal ---- */
+  /* ---- add-expense modal ----
+     top-anchored (not centered) and scrollable: when the on-screen keyboard
+     opens, iOS/Android don't shrink a `position:fixed` element's box to the
+     now-smaller visible area, so a vertically-centered panel gets computed
+     against the full pre-keyboard height and ends up half-cut-off above the
+     visible viewport with dead space below it. Anchoring to the top keeps
+     the panel inside the part of the screen that stays visible no matter
+     how tall the keyboard is; overflow-y:auto is the fallback if the panel
+     + keyboard still don't both fit. */
   .modal-backdrop{
     position:fixed; inset:0; background:rgba(0,0,0,0.4);
-    display:none; align-items:center; justify-content:center; z-index:100; padding: var(--space-5);
+    display:none; align-items:flex-start; justify-content:center; z-index:100;
+    padding: calc(env(safe-area-inset-top, 0px) + var(--space-5)) var(--space-5) var(--space-5);
+    overflow-y:auto;
   }
   .modal-backdrop.open{ display:flex; }
   .modal-panel{
     background: var(--surface-canvas); border-radius: var(--radius-large);
     padding: var(--space-5); width:100%; max-width:340px; box-shadow: var(--shadow-4);
+    flex-shrink:0;
   }
   .modal-title{ font-size:var(--fs-4); font-weight:var(--fw-bold); color: var(--fg-default); margin-bottom: var(--space-4); }
   .cat-picker{ display:flex; gap: var(--space-2); margin-bottom: var(--space-4); flex-wrap:wrap; }
