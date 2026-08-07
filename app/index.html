@@ -297,26 +297,21 @@
   .budget-balance{ display:contents; cursor:pointer; }
 
   /* ---- add-expense modal ----
-     top-anchored (not centered) and scrollable: when the on-screen keyboard
-     opens, iOS/Android don't shrink a `position:fixed` element's box to the
-     now-smaller visible area, so a vertically-centered panel gets computed
-     against the full pre-keyboard height and ends up half-cut-off above the
-     visible viewport with dead space below it. Anchoring to the top keeps
-     the panel inside the part of the screen that stays visible no matter
-     how tall the keyboard is; overflow-y:auto is the fallback if the panel
-     + keyboard still don't both fit. */
+     top-anchored (not centered): a vertically-centered panel gets computed
+     against the full pre-keyboard height and ends up half-cut-off above
+     the visible viewport once the keyboard opens. Anchoring to the top
+     keeps it inside the part of the screen that stays visible regardless.
+     No overflow-y here on purpose — an overflow:auto ancestor is exactly
+     what iOS scrolls to "helpfully" bring a focused field into view, which
+     is the panel-jumps-every-time-you-tap-a-field behavior this is meant
+     to kill. The panel is short enough to fit without it; if it ever isn't,
+     the bottom gets clipped instead of the whole thing lurching around. */
   .modal-backdrop{
     position:fixed; top:0; left:0; right:0; background:rgba(0,0,0,0.4);
-    height: 100vh; height: 100dvh; /* deliberately NOT re-synced to
-      window.visualViewport on keyboard show/hide — that tracked the
-      keyboard precisely but visualViewport fires many times over the
-      keyboard's slide animation, so the panel kept nudging in tiny steps
-      the whole time ("shaking"). Plain dvh only reacts to the address bar
-      collapsing, never to the keyboard, so once this is set the box
-      just... doesn't move when the keyboard opens or closes. */
+    height: 100vh; height: 100dvh;
     display:none; align-items:flex-start; justify-content:center; z-index:100;
     padding: calc(env(safe-area-inset-top, 0px) + var(--space-5)) var(--space-5) var(--space-5);
-    overflow-y:auto;
+    overflow:hidden;
   }
   .modal-backdrop.open{ display:flex; }
   .modal-panel{
