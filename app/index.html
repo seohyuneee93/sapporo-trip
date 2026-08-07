@@ -375,15 +375,15 @@
     <div class="cat-picker" id="catPicker"></div>
     <div class="field">
       <label for="expTitleInput">항목명</label>
-      <input type="text" id="expTitleInput" placeholder="예: 저녁 식사">
+      <input type="text" id="expTitleInput" placeholder="예: 저녁 식사" readonly>
     </div>
     <div class="field">
       <label for="expMemoInput">메모 (선택)</label>
-      <input type="text" id="expMemoInput" placeholder="예: 트래블버킷 하나카드">
+      <input type="text" id="expMemoInput" placeholder="예: 트래블버킷 하나카드" readonly>
     </div>
     <div class="field">
       <label for="expAmountInput">금액</label>
-      <input type="text" id="expAmountInput" placeholder="0" inputmode="numeric" pattern="[0-9,]*">
+      <input type="text" id="expAmountInput" placeholder="0" inputmode="numeric" pattern="[0-9,]*" readonly>
     </div>
     <div class="modal-actions">
       <button type="button" class="btn-danger" id="expDeleteBtn" style="display:none">삭제</button>
@@ -402,15 +402,15 @@
     <div class="cat-picker" id="itemCatPicker"></div>
     <div class="field">
       <label for="itemTitleInput">항목명</label>
-      <input type="text" id="itemTitleInput" placeholder="예: 오도리 공원 산책">
+      <input type="text" id="itemTitleInput" placeholder="예: 오도리 공원 산책" readonly>
     </div>
     <div class="field">
       <label for="itemTimeInput">시간</label>
-      <input type="text" id="itemTimeInput" placeholder="예: 16:30 또는 오후">
+      <input type="text" id="itemTimeInput" placeholder="예: 16:30 또는 오후" readonly>
     </div>
     <div class="field">
       <label for="itemPlaceInput">장소 (선택)</label>
-      <input type="text" id="itemPlaceInput" placeholder="예: 스스키노">
+      <input type="text" id="itemPlaceInput" placeholder="예: 스스키노" readonly>
     </div>
     <div class="modal-actions">
       <button type="button" class="btn-danger" id="itemDeleteBtn" style="display:none">삭제</button>
@@ -429,7 +429,7 @@
     <div class="exp-day" id="currentBudgetLabel" style="margin-bottom:var(--space-4)"></div>
     <div class="field">
       <label for="budgetInput">새 예산</label>
-      <input type="text" id="budgetInput" placeholder="0" inputmode="numeric" pattern="[0-9,]*">
+      <input type="text" id="budgetInput" placeholder="0" inputmode="numeric" pattern="[0-9,]*" readonly>
     </div>
     <div class="modal-actions">
       <div style="flex:1"></div>
@@ -800,6 +800,20 @@ function unlockBodyScroll(){
   document.body.style.position = '';
   document.body.style.width = '';
 }
+
+/* modal text fields start `readonly` in the HTML — a readonly input
+   doesn't bring up the keyboard on tap, so iOS never runs its "scroll
+   this into view for the keyboard" routine for the initial touch. We flip
+   readonly off in our own `focus` handler instead, and the keyboard shows
+   up (focus is already in a user-gesture call stack) without that
+   auto-scroll ever having been triggered — restoring readonly on blur so
+   the same field defeats the auto-scroll again next time it's tapped. */
+function deferKeyboardFocus(el){
+  el.addEventListener('focus', () => { el.removeAttribute('readonly'); });
+  el.addEventListener('blur', () => { el.setAttribute('readonly', ''); });
+}
+['expTitleInput','expMemoInput','expAmountInput','itemTitleInput','itemTimeInput','itemPlaceInput','budgetInput']
+  .forEach(id => deferKeyboardFocus(document.getElementById(id)));
 
 let editingId = null;
 
