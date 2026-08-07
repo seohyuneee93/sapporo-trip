@@ -306,7 +306,11 @@
      how tall the keyboard is; overflow-y:auto is the fallback if the panel
      + keyboard still don't both fit. */
   .modal-backdrop{
-    position:fixed; inset:0; background:rgba(0,0,0,0.4);
+    position:fixed; top:0; left:0; right:0; background:rgba(0,0,0,0.4);
+    height: 100vh; height: 100dvh; /* same reasoning as .shell: a static
+      inset:0 box doesn't track the viewport shrinking/growing as the
+      keyboard opens and closes on each field, which was shoving the panel
+      around every time focus moved between fields */
     display:none; align-items:flex-start; justify-content:center; z-index:100;
     padding: calc(env(safe-area-inset-top, 0px) + var(--space-5)) var(--space-5) var(--space-5);
     overflow-y:auto;
